@@ -1,23 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
   <title id="title">GTD TODOs logo</title>
-  <desc id="desc">A warm task-card logo with a check mark for GTD TODOs.</desc>
+  <desc id="desc">A cool task-card logo with a check mark for GTD TODOs.</desc>
   <defs>
     <linearGradient id="bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#c96d47"/>
-      <stop offset="1" stop-color="#8f3d24"/>
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1e40af"/>
     </linearGradient>
     <linearGradient id="card" x1="18" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff9f1"/>
-      <stop offset="1" stop-color="#f1ddc6"/>
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e2e8f0"/>
     </linearGradient>
   </defs>
   <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#bg)"/>
-  <circle cx="47" cy="17" r="5" fill="#f3c16b" opacity="0.95"/>
+  <circle cx="47" cy="17" r="5" fill="#93c5fd" opacity="0.95"/>
   <path d="M21 15h20l8 8v22c0 2.761-2.239 5-5 5H21c-2.761 0-5-2.239-5-5V20c0-2.761 2.239-5 5-5Z" fill="url(#card)"/>
-  <path d="M41 15v8h8" fill="none" stroke="#d8b896" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
-  <path d="M24 27h16" stroke="#d7b08c" stroke-linecap="round" stroke-width="3"/>
-  <path d="M24 34h11" stroke="#d7b08c" stroke-linecap="round" stroke-width="3"/>
-  <path d="M24 41h9" stroke="#d7b08c" stroke-linecap="round" stroke-width="3"/>
-  <circle cx="40" cy="40" r="10" fill="#b14f2f"/>
-  <path d="m35.8 40.2 2.8 2.9 5.7-6.5" fill="none" stroke="#fff7ee" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"/>
+  <path d="M41 15v8h8" fill="none" stroke="#94a3b8" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+  <path d="M24 27h16" stroke="#94a3b8" stroke-linecap="round" stroke-width="3"/>
+  <path d="M24 34h11" stroke="#94a3b8" stroke-linecap="round" stroke-width="3"/>
+  <path d="M24 41h9" stroke="#94a3b8" stroke-linecap="round" stroke-width="3"/>
+  <circle cx="40" cy="40" r="10" fill="#2563eb"/>
+  <path d="m35.8 40.2 2.8 2.9 5.7-6.5" fill="none" stroke="#f0f9ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"/>
 </svg>
