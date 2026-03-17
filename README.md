@@ -1,0 +1,81 @@
+# GTD TODOs
+
+GTD TODOs is a local-first task application for a single laptop user. The MVP is intentionally small: FastAPI serves HTML pages, SQLite persists data, and the app is designed around GTD task states, optional due dates, recurring tasks, Markdown notes, and simple project organization.
+
+![GTD TODOs logo](docs/gtd-todos-logo.png)
+
+## Local Python Setup
+
+1. Create and activate a Python 3.12 environment.
+2. Install the project with development dependencies.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+```
+
+3. Run the app locally.
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+```
+
+The default database URL is `sqlite:////data/todo.db`. For local development outside Docker, set `DATABASE_URL` to a writable path such as `sqlite:///./data/todo.db`.
+
+## Docker Compose
+
+Start the app with a persistent named volume mounted at `/data`:
+
+```bash
+docker compose up --build
+```
+
+Stop the stack:
+
+```bash
+docker compose down
+```
+
+The application listens on `http://localhost:8080`.
+
+## Developer Commands
+
+Run tests:
+
+```bash
+pytest
+```
+
+Run lint checks:
+
+```bash
+ruff check .
+```
+
+Run type checks:
+
+```bash
+mypy app
+```
+
+Build the container image:
+
+```bash
+docker build .
+```
+
+## Project Structure
+
+- `app/`: FastAPI app, routes, SQLModel models, Markdown helpers, templates, and static assets.
+- `tests/`: bootstrap coverage for app import, page rendering, health checks, and SQLite initialization.
+- `docs/`: human-readable API and agent-integration documentation.
+- `.github/`: Copilot instructions, skills, and CI workflow.
+- `scripts/`: repository bootstrap helpers.
+
+## Documentation
+
+- [docs/api.md](docs/api.md)
+- [docs/llm-integration.md](docs/llm-integration.md)
+- [.github/skills/todo-api/SKILL.md](.github/skills/todo-api/SKILL.md)
+- [.github/skills/todo-data-model/SKILL.md](.github/skills/todo-data-model/SKILL.md)

@@ -1,0 +1,64 @@
+.DS_Store
+Thumbs.db
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python bytecode and packaging
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.python-version
+.eggs/
+*.egg-info/
+build/
+dist/
+pip-wheel-metadata/
+site/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Tooling caches and reports
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.nox/
+.tox/
+.pyre/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+pytestdebug.log
+
+# Environment and local overrides
+.env
+.env.*
+!.env.example
+
+# Runtime data and logs
+data/
+logs/
+*.log
+*.pid
+
+# SQLite databases and journals
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Notebooks
+.ipynb_checkpoints/

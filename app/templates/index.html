@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Phase 0 bootstrap</p>
+  <h1>{{ app_name }}</h1>
+  <p class="lede">
+    A local-first GTD application scaffolded with FastAPI, SQLite, Jinja templates,
+    and HTMX-ready server-rendered pages.
+  </p>
+
+  <div class="panel-grid">
+    <article class="panel">
+      <h2>What is ready now</h2>
+      <ul>
+        <li>FastAPI app boot path and health endpoint</li>
+        <li>SQLite engine initialization under persistent storage</li>
+        <li>Docker, CI, lint, type-check, and pytest wiring</li>
+      </ul>
+    </article>
+    <article class="panel accent">
+      <h2>Next phase handoff</h2>
+      <p>Build durable project and task storage on top of the initialized SQLModel metadata.</p>
+      <p class="meta">Database URL: {{ database_url }}</p>
+    </article>
+  </div>
+</section>
+{% endblock %}

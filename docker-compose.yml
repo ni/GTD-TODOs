@@ -1,0 +1,16 @@
+services:
+  todo-app:
+    build:
+      context: .
+    container_name: gtd-todos-app
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8080
+      DATABASE_URL: sqlite:////data/todo.db
+    ports:
+      - "8080:8080"
+    volumes:
+      - todo_app_data:/data
+
+volumes:
+  todo_app_data:
