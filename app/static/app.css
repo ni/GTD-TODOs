@@ -1,13 +1,13 @@
 :root {
-  --bg: #f4efe6;
-  --surface: rgba(255, 251, 245, 0.82);
-  --surface-strong: #fff9f1;
-  --text: #1f1b18;
-  --muted: #6a625a;
-  --line: rgba(31, 27, 24, 0.12);
-  --accent: #b14f2f;
-  --accent-soft: #f0d7ba;
-  --shadow: 0 30px 80px rgba(73, 42, 22, 0.12);
+  --bg: #f0f4f8;
+  --surface: rgba(248, 250, 252, 0.82);
+  --surface-strong: #f8fafc;
+  --text: #0f172a;
+  --muted: #64748b;
+  --line: rgba(15, 23, 42, 0.10);
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+  --shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
   --radius: 12px;
 }
 
@@ -19,10 +19,10 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(177, 79, 47, 0.18), transparent 30%),
-    linear-gradient(135deg, #f8f1e7 0%, #efe6d8 55%, #e7dccb 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%),
+    linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 55%, #cbd5e1 100%);
   color: var(--text);
-  font-family: "IBM Plex Sans", sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 /* --- Navigation --- */
@@ -38,7 +38,7 @@ body {
 }
 
 .nav-brand {
-  font-family: "Fraunces", serif;
+  font-family: "Inter", sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text);
@@ -74,7 +74,8 @@ body {
 
 h1,
 h2 {
-  font-family: "Fraunces", serif;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
 }
 
 h1 {
@@ -172,7 +173,7 @@ h1 {
 }
 
 .badge-project {
-  background: rgba(31, 27, 24, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   color: var(--muted);
 }
 
@@ -213,7 +214,7 @@ h1 {
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  background: rgba(31, 27, 24, 0.04);
+  background: rgba(15, 23, 42, 0.04);
   font-size: 0.92rem;
   line-height: 1.6;
   color: var(--muted);
@@ -278,7 +279,7 @@ h1 {
 
 .edit-form textarea {
   resize: vertical;
-  font-family: "IBM Plex Mono", monospace, "IBM Plex Sans", sans-serif;
+  font-family: "IBM Plex Mono", monospace, "Inter", sans-serif;
   font-size: 0.9rem;
 }
 
@@ -386,14 +387,14 @@ h1 {
 .rendered-markdown code {
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
-  background: rgba(31, 27, 24, 0.06);
+  background: rgba(15, 23, 42, 0.06);
   font-size: 0.88em;
 }
 
 .rendered-markdown pre {
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  background: rgba(31, 27, 24, 0.06);
+  background: rgba(15, 23, 42, 0.06);
   overflow-x: auto;
 }
 
