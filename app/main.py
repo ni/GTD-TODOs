@@ -12,6 +12,7 @@ from app.config import get_settings
 from app.db import init_db
 from app.routes.health import router as health_router
 from app.routes.pages import router as pages_router
+from app.routes.tasks import router as tasks_router
 
 
 @asynccontextmanager
@@ -27,6 +28,7 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
     app.include_router(health_router)
     app.include_router(pages_router)
+    app.include_router(tasks_router)
     return app
 
 

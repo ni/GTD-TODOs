@@ -2,7 +2,16 @@
 
 ## Page Routes
 
-- `GET /`: Returns the initial HTML landing page.
+- `GET /`: Redirects to `/inbox`.
+- `GET /inbox`: Inbox page showing tasks with `inbox` status and a quick-add form.
+- `GET /tasks/{task_id}/edit`: Edit form for a single task.
+
+## Mutation Routes
+
+- `POST /tasks`: Create a new task (defaults to `inbox` status). Redirects to `/inbox`.
+- `POST /tasks/{task_id}/update`: Update task fields from the edit form. Redirects to `/inbox`.
+- `POST /tasks/{task_id}/complete`: Complete a task. Non-recurring tasks move to `done`; recurring tasks advance `due_date`. Redirects to `/inbox`.
+- `POST /tasks/{task_id}/reopen`: Reopen a completed task back to `inbox`. Redirects to `/inbox`.
 
 ## Operational Routes
 
@@ -17,6 +26,41 @@ Response:
   "status": "ok"
 }
 ```
+
+### `POST /tasks`
+
+Form fields:
+
+| Field | Required | Notes |
+|---|---|---|
+| `title` | Yes | Task title (empty titles are rejected) |
+
+Redirects to `/inbox` on success.
+
+### `POST /tasks/{task_id}/update`
+
+Form fields:
+
+| Field | Required | Notes |
+|---|---|---|
+| `title` | Yes | Task title |
+| `notes` | No | Raw Markdown text |
+| `status` | No | One of: `inbox`, `next_action`, `waiting_for`, `scheduled`, `someday_maybe`, `done` |
+| `due_date` | No | ISO format date (`YYYY-MM-DD`) or empty to clear |
+| `is_recurring` | No | Checkbox value (`on` when checked) |
+| `recurrence_type` | No | One of: `daily`, `weekly`, `monthly`, `interval_days` |
+| `recurrence_interval_days` | No | Integer, used with `interval_days` recurrence |
+| `project_id` | No | Integer project ID or empty for no project |
+
+Redirects to `/inbox` on success. Returns 404 if task not found.
+
+### `POST /tasks/{task_id}/complete`
+
+No form fields required. Redirects to `/inbox`. Returns 404 if task not found.
+
+### `POST /tasks/{task_id}/reopen`
+
+No form fields required. Redirects to `/inbox`. Returns 404 if task not found.
 
 ## Data Model
 
@@ -96,4 +140,4 @@ Populate the database with sample data for local testing:
 python -m app.seed
 ```
 
-Future phases will expand this document with HTTP mutation routes, form payloads, and HTMX partial behaviors.
+Future phases will expand this document with Today view, project detail pages, filtering, and HTMX partial behaviors.

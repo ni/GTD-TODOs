@@ -6,7 +6,7 @@ Use this skill when interacting with the running GTD TODOs application over HTTP
 
 - Local Docker Compose URL: `http://localhost:8080`
 - Health endpoint: `GET /health`
-- Current landing page: `GET /`
+- Landing page redirects to: `GET /inbox`
 
 ## Startup Checklist
 
@@ -14,10 +14,26 @@ Use this skill when interacting with the running GTD TODOs application over HTTP
 2. Verify reachability with `GET /health`.
 3. Expect JSON `{"status": "ok"}` from the health route.
 
-## Route Conventions
+## Page Routes
+
+- `GET /` redirects to `/inbox`.
+- `GET /inbox` shows inbox tasks with a quick-add form.
+- `GET /tasks/{task_id}/edit` shows the task edit form.
+
+## Mutation Routes
+
+- `POST /tasks` creates a task (form field: `title`). Redirects to `/inbox`.
+- `POST /tasks/{task_id}/update` updates a task from the edit form. Redirects to `/inbox`.
+- `POST /tasks/{task_id}/complete` completes a task. Redirects to `/inbox`.
+- `POST /tasks/{task_id}/reopen` reopens a task to inbox. Redirects to `/inbox`.
+
+See `docs/api.md` for full form field specifications.
+
+## General Conventions
 
 - HTML page routes return server-rendered responses.
-- Mutation routes will be added in later phases and documented in `docs/api.md`.
+- Mutation routes accept form-encoded POST data and redirect on success.
+- Not-found resources return HTTP 404.
 - SQLite persistence uses the database URL configured in `DATABASE_URL`.
 
 ## Troubleshooting

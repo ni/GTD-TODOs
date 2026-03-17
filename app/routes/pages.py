@@ -1,25 +1,35 @@
 """Page routes."""
 
-from pathlib import Path
-
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlmodel import Session
 
 from app.config import get_settings
+from app.db import get_session
+from app.models import TaskStatus
+from app.routes import templates
+from app.services.project_service import list_projects
+from app.services.task_service import list_tasks
 
-templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
 router = APIRouter(tags=["pages"])
 
 
-@router.get("/", response_class=HTMLResponse)
-def home(request: Request) -> HTMLResponse:
+@router.get("/")
+def home() -> RedirectResponse:
+    return RedirectResponse("/inbox", status_code=302)
+
+
+@router.get("/inbox", response_class=HTMLResponse)
+def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     settings = get_settings()
+    tasks = list_tasks(session, status=TaskStatus.INBOX)
+    projects_map = {p.id: p.name for p in list_projects(session)}
     return templates.TemplateResponse(
         request,
-        "index.html",
+        "inbox.html",
         {
             "app_name": settings.app_name,
-            "database_url": settings.database_url,
+            "tasks": tasks,
+            "projects": projects_map,
         },
     )
