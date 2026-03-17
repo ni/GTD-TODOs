@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import Session
 
+from app.db import get_engine, init_db
 from app.main import create_app
 
 
@@ -20,3 +23,12 @@ def client(sqlite_database_url: str) -> TestClient:
     app = create_app()
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def db_session(sqlite_database_url: str) -> Generator[Session, None, None]:
+    """Provide a database session with tables created."""
+    init_db(sqlite_database_url)
+    engine = get_engine(sqlite_database_url)
+    with Session(engine) as session:
+        yield session
