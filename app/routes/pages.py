@@ -9,6 +9,8 @@ from app.db import get_session
 from app.models import TaskStatus
 from app.routes import templates
 from app.services.project_service import (
+    can_complete_project,
+    complete_project,
     create_project,
     get_project,
     get_project_task_counts,
@@ -107,6 +109,17 @@ def create_project_route(
     return RedirectResponse("/projects", status_code=303)
 
 
+@router.post("/projects/{project_id}/complete")
+def complete_project_route(
+    project_id: int,
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    project = complete_project(session, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found or has open tasks")
+    return RedirectResponse(f"/projects/{project_id}", status_code=303)
+
+
 @router.get("/projects/{project_id}", response_class=HTMLResponse)
 def project_detail(
     request: Request,
@@ -127,6 +140,7 @@ def project_detail(
         grouped.setdefault(label, []).append(task)
 
     nav_counts = get_nav_counts(session)
+    completable = can_complete_project(session, project_id)
     return templates.TemplateResponse(
         request,
         "project_detail.html",
@@ -136,6 +150,7 @@ def project_detail(
             "grouped_tasks": grouped,
             "status_labels": STATUS_LABELS,
             "nav_counts": nav_counts,
+            "can_complete": completable,
         },
     )
 

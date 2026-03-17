@@ -3,7 +3,7 @@
 from collections.abc import Generator
 from pathlib import Path
 
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, text
 
 from app.config import get_settings
 
@@ -29,9 +29,29 @@ def get_engine(database_url: str | None = None):
     return _engines[resolved_url]
 
 
-def init_db(database_url: str | None = None) -> None:
+def _migrate_schema(database_url: str) -> None:
+    """Apply lightweight schema migrations for new columns."""
     engine = get_engine(database_url)
+    with engine.connect() as conn:
+        # Check if the projects table exists before trying to migrate it
+        result = conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='projects'")
+        )
+        if result.fetchone() is None:
+            return
+        # Add completed_at column if missing
+        columns = [row[1] for row in conn.execute(text("PRAGMA table_info(projects)"))]
+        if "completed_at" not in columns:
+            conn.execute(text("ALTER TABLE projects ADD COLUMN completed_at DATETIME"))
+            conn.commit()
+
+
+def init_db(database_url: str | None = None) -> None:
+    settings = get_settings()
+    resolved_url = database_url or settings.database_url
+    engine = get_engine(resolved_url)
     SQLModel.metadata.create_all(engine)
+    _migrate_schema(resolved_url)
 
 
 def get_session() -> Generator[Session, None, None]:

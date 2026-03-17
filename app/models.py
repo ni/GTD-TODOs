@@ -35,6 +35,7 @@ class Project(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utc_now, nullable=False)
     updated_at: datetime = Field(default_factory=utc_now, nullable=False)
     archived_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 class Task(SQLModel, table=True):

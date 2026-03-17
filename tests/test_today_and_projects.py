@@ -6,8 +6,8 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.models import RecurrenceType, TaskStatus
-from app.services.project_service import archive_project, create_project
-from app.services.task_service import create_task
+from app.services.project_service import archive_project, complete_project, create_project
+from app.services.task_service import complete_task, create_task
 
 # ---------------------------------------------------------------------------
 # Today page
@@ -368,3 +368,70 @@ class TestProjectDetailPage:
         )
         response = client.get(f"/projects/{project.id}")
         assert "<strong>bold text</strong>" in response.text
+
+    def test_complete_button_disabled_with_open_tasks(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Incomplete")
+        create_task(db_session, title="Open task", project_id=project.id)
+        response = client.get(f"/projects/{project.id}")
+        assert "btn-disabled" in response.text
+        assert "disabled" in response.text
+
+    def test_complete_button_enabled_when_all_done(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Completable")
+        task = create_task(db_session, title="Done task", project_id=project.id)
+        complete_task(db_session, task.id)  # type: ignore[arg-type]
+        response = client.get(f"/projects/{project.id}")
+        assert "Complete Project" in response.text
+        assert "btn-disabled" not in response.text
+
+    def test_complete_button_enabled_no_tasks(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Empty Proj")
+        response = client.get(f"/projects/{project.id}")
+        assert "Complete Project" in response.text
+        assert "btn-disabled" not in response.text
+
+    def test_complete_project_route_success(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Finish Me")
+        task = create_task(db_session, title="Done", project_id=project.id)
+        complete_task(db_session, task.id)  # type: ignore[arg-type]
+        response = client.post(
+            f"/projects/{project.id}/complete", follow_redirects=False
+        )
+        assert response.status_code == 303
+
+    def test_complete_project_route_shows_completed_badge(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Badge Test")
+        task = create_task(db_session, title="Done", project_id=project.id)
+        complete_task(db_session, task.id)  # type: ignore[arg-type]
+        client.post(f"/projects/{project.id}/complete")
+        response = client.get(f"/projects/{project.id}")
+        assert "Completed" in response.text
+
+    def test_complete_project_blocked_returns_404(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Blocked")
+        create_task(db_session, title="Still open", project_id=project.id)
+        response = client.post(
+            f"/projects/{project.id}/complete", follow_redirects=False
+        )
+        assert response.status_code == 404
+
+    def test_completed_project_shows_badge_in_list(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        project = create_project(db_session, name="Done Proj")
+        complete_project(db_session, project.id)  # type: ignore[arg-type]
+        response = client.get("/projects")
+        assert "Completed" in response.text
+        assert "project-completed" in response.text
