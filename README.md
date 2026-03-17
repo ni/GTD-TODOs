@@ -68,7 +68,7 @@ docker build .
 ## Project Structure
 
 - `app/`: FastAPI app, routes, SQLModel models, Markdown helpers, templates, and static assets.
-- `tests/`: bootstrap coverage for app import, page rendering, health checks, and SQLite initialization.
+- `tests/`: test coverage for app import, page rendering, health checks, SQLite initialization, GTD workflow routes, and service-layer logic.
 - `docs/`: human-readable API and agent-integration documentation.
 - `.github/`: Copilot instructions, skills, and CI workflow.
 - `scripts/`: repository bootstrap helpers.

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-inbox">
+  <h1>Inbox</h1>
+
+  <form class="quick-add" action="/tasks" method="post">
+    <input type="text" name="title" placeholder="Capture a task…" required autocomplete="off">
+    <button type="submit">Add</button>
+  </form>
+
+  {% if tasks %}
+  <ul class="task-list">
+    {% for task in tasks %}
+    <li class="task-item">
+      <div class="task-header">
+        <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
+        </form>
+        <span class="task-title">{{ task.title }}</span>
+        <div class="task-meta">
+          {% if task.due_date %}
+          <span class="badge badge-due">{{ task.due_date }}</span>
+          {% endif %}
+          {% if task.project_id and projects.get(task.project_id) %}
+          <span class="badge badge-project">{{ projects[task.project_id] }}</span>
+          {% endif %}
+          <a href="/tasks/{{ task.id }}/edit" class="btn-edit">Edit</a>
+        </div>
+      </div>
+      {% if task.notes %}
+      <div class="task-notes">{{ render_markdown(task.notes) | safe }}</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-state">Your inbox is empty. Capture a task above!</p>
+  {% endif %}
+</section>
+{% endblock %}

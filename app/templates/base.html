@@ -13,6 +13,12 @@
     <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
   </head>
   <body>
+    <nav class="top-nav">
+      <a href="/inbox" class="nav-brand">{{ app_name | default('GTD TODOs') }}</a>
+      <ul class="nav-links">
+        <li><a href="/inbox">Inbox</a></li>
+      </ul>
+    </nav>
     <main class="shell">
       {% block content %}{% endblock %}
     </main>

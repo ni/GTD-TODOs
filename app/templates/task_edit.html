@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Task – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-edit">
+  <h1>Edit Task</h1>
+
+  <form action="/tasks/{{ task.id }}/update" method="post" class="edit-form">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" value="{{ task.title }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">Notes <span class="hint">(Markdown supported)</span></label>
+      <textarea id="notes" name="notes" rows="6">{{ task.notes or '' }}</textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          {% for value, label in statuses %}
+          <option value="{{ value }}" {% if task.status.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="due_date">Due Date</label>
+        <input type="date" id="due_date" name="due_date" value="{{ task.due_date or '' }}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="project_id">Project</label>
+      <select id="project_id" name="project_id">
+        <option value="">None</option>
+        {% for project in projects %}
+        <option value="{{ project.id }}" {% if task.project_id == project.id %}selected{% endif %}>{{ project.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <fieldset class="form-group recurrence-fields">
+      <legend>Recurrence</legend>
+      <label class="checkbox-label">
+        <input type="checkbox" name="is_recurring" {% if task.is_recurring %}checked{% endif %}>
+        Recurring task
+      </label>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="recurrence_type">Pattern</label>
+          <select id="recurrence_type" name="recurrence_type">
+            <option value="">None</option>
+            {% for value, label in recurrence_types %}
+            <option value="{{ value }}" {% if task.recurrence_type and task.recurrence_type.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="recurrence_interval_days">Interval (days)</label>
+          <input type="number" id="recurrence_interval_days" name="recurrence_interval_days"
+                 value="{{ task.recurrence_interval_days or '' }}" min="1">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Save</button>
+      <a href="/inbox" class="btn-secondary">Cancel</a>
+    </div>
+  </form>
+
+  {% if task.notes %}
+  <div class="notes-preview">
+    <h2>Notes Preview</h2>
+    <div class="rendered-markdown">{{ render_markdown(task.notes) | safe }}</div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
