@@ -18,6 +18,7 @@ from app.services.task_service import (
     list_tasks,
     list_tasks_due_today,
     list_tasks_overdue,
+    search_tasks,
 )
 
 router = APIRouter(tags=["pages"])
@@ -126,5 +127,85 @@ def project_detail(
             "project": project,
             "grouped_tasks": grouped,
             "status_labels": STATUS_LABELS,
+        },
+    )
+
+
+@router.get("/tasks", response_class=HTMLResponse)
+def all_tasks(
+    request: Request,
+    status: str = "",
+    project_id: str = "",
+    q: str = "",
+    has_due_date: str = "",
+    is_recurring: str = "",
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    from datetime import date as _date
+
+    from app.models import TaskStatus as _TS
+
+    settings = get_settings()
+    projects_list_all = list_projects(session)
+    projects_map = {p.id: p.name for p in projects_list_all}
+
+    # Parse filters
+    status_filter = None
+    try:
+        if status:
+            status_filter = _TS(status)
+    except ValueError:
+        pass
+
+    pid: int | None = None
+    no_project = False
+    if project_id == "none":
+        no_project = True
+    elif project_id:
+        try:
+            pid = int(project_id)
+        except ValueError:
+            pass
+
+    due_filter: bool | None = None
+    if has_due_date == "yes":
+        due_filter = True
+    elif has_due_date == "no":
+        due_filter = False
+
+    recurring_filter: bool | None = None
+    if is_recurring == "yes":
+        recurring_filter = True
+    elif is_recurring == "no":
+        recurring_filter = False
+
+    tasks = search_tasks(
+        session,
+        status=status_filter,
+        project_id=pid,
+        no_project=no_project,
+        q=q.strip() if q else None,
+        has_due_date=due_filter,
+        is_recurring=recurring_filter,
+    )
+
+    today = _date.today()
+
+    return templates.TemplateResponse(
+        request,
+        "tasks_list.html",
+        {
+            "app_name": settings.app_name,
+            "tasks": tasks,
+            "projects": projects_map,
+            "projects_list": projects_list_all,
+            "status_labels": STATUS_LABELS,
+            "today": today,
+            # Current filter values for the form
+            "f_status": status,
+            "f_project_id": project_id,
+            "f_q": q,
+            "f_has_due_date": has_due_date,
+            "f_is_recurring": is_recurring,
         },
     )

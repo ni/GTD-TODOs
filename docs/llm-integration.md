@@ -19,13 +19,43 @@ The repository includes `.github` customization assets so a new agent conversati
 ## Core Workflow Routes
 
 - `GET /inbox` — inbox page with quick-add form.
-- `POST /tasks` — create a task (form field: `title`).
+- `GET /today` — tasks due today and overdue tasks.
+- `GET /projects` — project list with task counts.
+- `GET /projects/{id}` — project detail with tasks grouped by GTD status.
+- `GET /tasks` — all tasks page with filtering and search.
 - `GET /tasks/{id}/edit` — edit form for a task.
+- `POST /tasks` — create a task (form field: `title`, optional `project_id`).
 - `POST /tasks/{id}/update` — update task from edit form.
 - `POST /tasks/{id}/complete` — complete a task.
 - `POST /tasks/{id}/reopen` — reopen a completed task.
+- `POST /projects` — create a project (form field: `name`).
 
 See `docs/api.md` for full route and form field documentation.
+
+## All Tasks Filtering and Search
+
+The `GET /tasks` page supports query parameters for filtering and text search:
+
+| Parameter | Values | Meaning |
+|---|---|---|
+| `q` | free text | Search title and notes (case-insensitive) |
+| `status` | `inbox`, `next_action`, `waiting_for`, `scheduled`, `someday_maybe`, `done` | Exact status match |
+| `project_id` | integer or `none` | Filter by project; `none` for unassigned tasks |
+| `has_due_date` | `yes`, `no` | Filter by due-date presence |
+| `is_recurring` | `yes`, `no` | Filter by recurring flag |
+
+Parameters can be combined. Example: `/tasks?status=inbox&q=groceries`
+
+## Visual Distinction
+
+The app uses CSS classes to visually distinguish task states:
+
+- `.task-overdue` — red left border for overdue items
+- `.task-due-today` — blue left border for items due today
+- `.task-done` — faded with strike-through title
+- `.task-inbox` — amber left border for inbox items
+
+Status badges use per-status colors to help quickly identify task state.
 
 ## Companion Assets
 

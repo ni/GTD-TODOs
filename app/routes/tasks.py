@@ -33,7 +33,7 @@ RECURRENCE_OPTIONS = [
 router = APIRouter(tags=["tasks"])
 
 # Paths that are safe redirect targets from the referer header.
-_SAFE_REFERER_PREFIXES = ("/inbox", "/today", "/projects")
+_SAFE_REFERER_PREFIXES = ("/inbox", "/today", "/projects", "/tasks")
 
 
 def _redirect_back(request: Request, fallback: str = "/inbox") -> str:
@@ -89,6 +89,7 @@ def edit_task_page(
 
 @router.post("/tasks/{task_id}/update")
 def update_task_route(
+    request: Request,
     task_id: int,
     title: str = Form(...),
     notes: str = Form(""),
@@ -104,6 +105,9 @@ def update_task_route(
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    if not title.strip():
+        return RedirectResponse(f"/tasks/{task_id}/edit", status_code=303)
+
     task.title = title
     task.notes = notes if notes.strip() else None
     task.status = TaskStatus(status)
@@ -118,7 +122,7 @@ def update_task_route(
 
     session.add(task)
     session.commit()
-    return RedirectResponse("/inbox", status_code=303)
+    return RedirectResponse(_redirect_back(request), status_code=303)
 
 
 @router.post("/tasks/{task_id}/complete")

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}All Tasks – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-all-tasks">
+  <h1>All Tasks</h1>
+
+  <form class="filter-bar" action="/tasks" method="get">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="f-q">Search</label>
+        <input type="text" id="f-q" name="q" value="{{ f_q }}" placeholder="Title or notes…" autocomplete="off">
+      </div>
+
+      <div class="filter-group">
+        <label for="f-status">Status</label>
+        <select id="f-status" name="status">
+          <option value="">All</option>
+          {% for value, label in status_labels.items() %}
+          <option value="{{ value }}" {% if f_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-project">Project</label>
+        <select id="f-project" name="project_id">
+          <option value="">All</option>
+          <option value="none" {% if f_project_id == "none" %}selected{% endif %}>No project</option>
+          {% for project in projects_list %}
+          <option value="{{ project.id }}" {% if f_project_id == project.id|string %}selected{% endif %}>{{ project.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-due">Due Date</label>
+        <select id="f-due" name="has_due_date">
+          <option value="">Any</option>
+          <option value="yes" {% if f_has_due_date == "yes" %}selected{% endif %}>Has due date</option>
+          <option value="no" {% if f_has_due_date == "no" %}selected{% endif %}>No due date</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-recurring">Recurring</label>
+        <select id="f-recurring" name="is_recurring">
+          <option value="">Any</option>
+          <option value="yes" {% if f_is_recurring == "yes" %}selected{% endif %}>Recurring</option>
+          <option value="no" {% if f_is_recurring == "no" %}selected{% endif %}>Non-recurring</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit" class="btn-primary btn-sm">Apply</button>
+      <a href="/tasks" class="btn-secondary btn-sm">Clear</a>
+    </div>
+  </form>
+
+  {% if tasks %}
+  <ul class="task-list">
+    {% for task in tasks %}
+    {% set is_overdue = task.due_date and task.due_date < today and task.status.value != 'done' %}
+    {% set is_due_today = task.due_date and task.due_date == today and task.status.value != 'done' %}
+    <li class="task-item{% if task.status.value == 'done' %} task-done{% endif %}{% if task.status.value == 'inbox' %} task-inbox{% endif %}{% if is_overdue %} task-overdue{% endif %}{% if is_due_today %} task-due-today{% endif %}">
+      <div class="task-header">
+        {% if task.status.value != 'done' %}
+        <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
+        </form>
+        {% endif %}
+        <span class="task-title">{{ task.title }}</span>
+        <div class="task-meta">
+          <span class="badge badge-status badge-status-{{ task.status.value }}">{{ status_labels.get(task.status.value, task.status.value) }}</span>
+          {% if task.due_date %}
+          <span class="badge {% if is_overdue %}badge-overdue{% elif is_due_today %}badge-due-today{% else %}badge-due{% endif %}">{{ task.due_date }}</span>
+          {% endif %}
+          {% if task.project_id and projects.get(task.project_id) %}
+          <span class="badge badge-project">{{ projects[task.project_id] }}</span>
+          {% endif %}
+          {% if task.is_recurring %}
+          <span class="badge badge-recurring">&#x1f501;</span>
+          {% endif %}
+          <a href="/tasks/{{ task.id }}/edit" class="btn-edit">Edit</a>
+        </div>
+      </div>
+      {% if task.notes %}
+      <div class="task-notes">{{ render_markdown(task.notes) | safe }}</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-state">No tasks match your filters.</p>
+  {% endif %}
+</section>
+{% endblock %}

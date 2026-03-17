@@ -167,6 +167,41 @@ def complete_task(session: Session, task_id: int) -> Task | None:
     return task
 
 
+def search_tasks(
+    session: Session,
+    *,
+    status: TaskStatus | None = None,
+    project_id: int | None = None,
+    no_project: bool = False,
+    q: str | None = None,
+    has_due_date: bool | None = None,
+    is_recurring: bool | None = None,
+) -> list[Task]:
+    """Filter and search tasks across multiple dimensions."""
+    stmt = select(Task)
+    if status is not None:
+        stmt = stmt.where(Task.status == status)
+    if no_project:
+        stmt = stmt.where(Task.project_id.is_(None))  # type: ignore[union-attr]
+    elif project_id is not None:
+        stmt = stmt.where(Task.project_id == project_id)
+    if q:
+        pattern = f"%{q}%"
+        stmt = stmt.where(
+            (Task.title.ilike(pattern)) | (Task.notes.ilike(pattern))  # type: ignore[union-attr,attr-defined]
+        )
+    if has_due_date is True:
+        stmt = stmt.where(Task.due_date.is_not(None))  # type: ignore[union-attr]
+    elif has_due_date is False:
+        stmt = stmt.where(Task.due_date.is_(None))  # type: ignore[union-attr]
+    if is_recurring is True:
+        stmt = stmt.where(Task.is_recurring == True)  # noqa: E712
+    elif is_recurring is False:
+        stmt = stmt.where(Task.is_recurring == False)  # noqa: E712
+    stmt = stmt.order_by(Task.due_date, Task.created_at)  # type: ignore[arg-type]
+    return list(session.exec(stmt).all())
+
+
 def reopen_task(session: Session, task_id: int) -> Task | None:
     task = session.get(Task, task_id)
     if task is None:
