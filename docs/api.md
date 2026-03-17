@@ -7,6 +7,7 @@
 - `GET /today`: Today page showing overdue tasks and tasks due today.
 - `GET /projects`: Projects list showing all non-archived projects with task counts.
 - `GET /projects/{project_id}`: Project detail page with tasks grouped by GTD status.
+- `GET /tasks`: All tasks page with filtering and search.
 - `GET /tasks/{task_id}/edit`: Edit form for a single task.
 
 ## Mutation Routes
@@ -127,6 +128,9 @@ create_task(session, title=..., notes=..., status=..., due_date=...,
             recurrence_interval_days=..., project_id=...) -> Task
 get_task(session, task_id)                            -> Task | None
 list_tasks(session, status=..., project_id=...)       -> list[Task]
+search_tasks(session, status=..., project_id=...,
+             no_project=..., q=..., has_due_date=...,
+             is_recurring=...)                         -> list[Task]
 update_task(session, task_id, **fields)               -> Task | None
 complete_task(session, task_id)                        -> Task | None
 reopen_task(session, task_id)                         -> Task | None
@@ -193,3 +197,40 @@ Shows project metadata and all tasks assigned to that project, grouped by GTD st
 Each group appears as a section heading followed by its tasks. Includes a quick-add form scoped to the project.
 
 Returns 404 if the project does not exist.
+
+---
+
+## All Tasks View
+
+### `GET /tasks`
+
+Displays all tasks with optional filtering and text search. Supports the following query parameters:
+
+| Parameter | Values | Description |
+|---|---|---|
+| `q` | free text | Case-insensitive search across title and notes |
+| `status` | `inbox`, `next_action`, `waiting_for`, `scheduled`, `someday_maybe`, `done` | Filter by exact GTD status |
+| `project_id` | integer or `none` | Filter by project ID; use `none` for tasks without a project |
+| `has_due_date` | `yes`, `no` | Filter by presence or absence of a due date |
+| `is_recurring` | `yes`, `no` | Filter by recurring flag |
+
+All parameters are optional and can be combined. Invalid `status` values are ignored (all tasks are returned).
+
+Each task shows:
+
+- Complete button (for non-done tasks)
+- Title
+- Status badge with per-status color
+- Due-date badge (color-coded: overdue in red, due today in blue)
+- Project badge (if assigned)
+- Recurrence indicator (if recurring)
+- Rendered Markdown notes (if present)
+
+Visual CSS classes applied to task items:
+
+- `.task-overdue` — task is overdue (due_date before today, not done)
+- `.task-due-today` — task is due today (not done)
+- `.task-done` — task status is done
+- `.task-inbox` — task status is inbox
+
+Example request: `GET /tasks?status=inbox&q=groceries&has_due_date=yes`

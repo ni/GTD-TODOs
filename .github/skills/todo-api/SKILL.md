@@ -21,17 +21,32 @@ Use this skill when interacting with the running GTD TODOs application over HTTP
 - `GET /today` shows overdue tasks and tasks due today (excludes done tasks and tasks without due dates).
 - `GET /projects` lists non-archived projects with open and due-today task counts.
 - `GET /projects/{project_id}` shows project details with tasks grouped by GTD status.
+- `GET /tasks` shows all tasks with filtering and search support.
 - `GET /tasks/{task_id}/edit` shows the task edit form.
 
 ## Mutation Routes
 
 - `POST /tasks` creates a task (form fields: `title`, optional `project_id`). Redirects back to the referring page.
-- `POST /tasks/{task_id}/update` updates a task from the edit form. Redirects to `/inbox`.
+- `POST /tasks/{task_id}/update` updates a task from the edit form. Redirects back to the referring page.
 - `POST /tasks/{task_id}/complete` completes a task. Redirects back to the referring page.
 - `POST /tasks/{task_id}/reopen` reopens a task to inbox. Redirects back to the referring page.
 - `POST /projects` creates a project (form field: `name`). Redirects to `/projects`.
 
 See `docs/api.md` for full form field specifications.
+
+## All Tasks Filtering and Search
+
+The `GET /tasks` page accepts query parameters:
+
+| Parameter | Values | Meaning |
+|---|---|---|
+| `q` | free text | Case-insensitive search across title and notes |
+| `status` | `inbox`, `next_action`, `waiting_for`, `scheduled`, `someday_maybe`, `done` | Exact status match |
+| `project_id` | integer or `none` | Filter by project; `none` for unassigned |
+| `has_due_date` | `yes`, `no` | Has or lacks a due date |
+| `is_recurring` | `yes`, `no` | Recurring or non-recurring |
+
+Parameters combine with AND logic. Example: `/tasks?status=inbox&q=groceries`
 
 ## Today View Behavior
 
@@ -47,11 +62,21 @@ Recurring tasks whose next due date is today appear automatically. Tasks without
 - The project detail page groups tasks by GTD status (Inbox, Next Action, Waiting For, Scheduled, Someday / Maybe, Done).
 - A quick-add form on the project detail page creates tasks pre-assigned to that project.
 
+## Visual Distinction
+
+Tasks have CSS classes that indicate their state for any UI interaction or scraping:
+
+- `.task-overdue` — overdue (due_date < today, not done)
+- `.task-due-today` — due today (not done)
+- `.task-done` — completed
+- `.task-inbox` — inbox status
+
 ## General Conventions
 
 - HTML page routes return server-rendered responses.
 - Mutation routes accept form-encoded POST data and redirect on success.
 - Not-found resources return HTTP 404.
+- Empty titles are rejected on update (redirect back to edit form).
 - SQLite persistence uses the database URL configured in `DATABASE_URL`.
 
 ## Troubleshooting
