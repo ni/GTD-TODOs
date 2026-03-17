@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-project-detail">
+  <h1>{{ project.name }}</h1>
+  {% if project.description %}
+  <p class="project-description">{{ project.description }}</p>
+  {% endif %}
+
+  <form class="quick-add" action="/tasks" method="post">
+    <input type="hidden" name="project_id" value="{{ project.id }}">
+    <input type="text" name="title" placeholder="Add a task to this project…" required autocomplete="off">
+    <button type="submit">Add</button>
+  </form>
+
+  {% if grouped_tasks %}
+    {% for label, tasks in grouped_tasks.items() %}
+    <h2 class="section-heading{% if label == 'Done' %} section-done{% endif %}">{{ label }}</h2>
+    <ul class="task-list">
+      {% for task in tasks %}
+      <li class="task-item{% if task.status.value == 'done' %} task-done{% endif %}">
+        <div class="task-header">
+          {% if task.status.value != 'done' %}
+          <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+            <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
+          </form>
+          {% endif %}
+          <span class="task-title">{{ task.title }}</span>
+          <div class="task-meta">
+            {% if task.due_date %}
+            <span class="badge badge-due">{{ task.due_date }}</span>
+            {% endif %}
+            {% if task.is_recurring %}
+            <span class="badge badge-recurring">&#x1f501;</span>
+            {% endif %}
+            <a href="/tasks/{{ task.id }}/edit" class="btn-edit">Edit</a>
+          </div>
+        </div>
+        {% if task.notes %}
+        <div class="task-notes">{{ render_markdown(task.notes) | safe }}</div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  {% else %}
+  <p class="empty-state">No tasks in this project yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

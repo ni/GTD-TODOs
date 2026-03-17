@@ -1,10 +1,10 @@
 """Project CRUD operations."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
-from app.models import Project
+from app.models import Project, Task, TaskStatus
 
 
 def create_project(
@@ -68,3 +68,24 @@ def archive_project(session: Session, project_id: int) -> Project | None:
     session.commit()
     session.refresh(project)
     return project
+
+
+def get_project_task_counts(
+    session: Session, project_id: int
+) -> dict[str, int]:
+    """Return open and due-today task counts for a project."""
+    today = date.today()
+    open_count = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.project_id == project_id)
+        .where(Task.status != TaskStatus.DONE)
+    ).one()
+    due_today_count = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.project_id == project_id)
+        .where(Task.due_date == today)
+        .where(Task.status != TaskStatus.DONE)
+    ).one()
+    return {"open": int(open_count), "due_today": int(due_today_count)}
