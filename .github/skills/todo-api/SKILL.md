@@ -71,11 +71,40 @@ Tasks have CSS classes that indicate their state for any UI interaction or scrap
 - `.task-done` — completed
 - `.task-inbox` — inbox status
 
+## Export Routes
+
+- `GET /export/tasks.csv` — all tasks as CSV. Optional `status` query parameter.
+- `GET /export/tasks.json` — all tasks as JSON. Optional `status` query parameter.
+- `GET /export/projects.csv` — all projects as CSV.
+- `GET /export/projects.json` — all projects as JSON.
+
+All export responses include a `Content-Disposition` header with a date-stamped filename.
+
+## Error Handling
+
+- 404 errors return a branded HTML page with navigation links.
+- 500 errors return a branded HTML page; the error is logged server-side.
+- All requests are logged with method, path, status code, and latency.
+
+## Logging
+
+Structured logging to stdout: `YYYY-MM-DDTHH:MM:SS LEVEL app MESSAGE`.
+Startup, shutdown, database init, exports, and errors are all logged.
+
+## Backup
+
+The SQLite file at `/data/todo.db` (Docker) can be backed up by:
+
+1. Copying the file: `docker compose cp todo-app:/data/todo.db ./backup.db`
+2. Using the export endpoints for CSV/JSON dumps.
+
+See `docs/api.md` for full backup and restore procedures.
+
 ## General Conventions
 
 - HTML page routes return server-rendered responses.
 - Mutation routes accept form-encoded POST data and redirect on success.
-- Not-found resources return HTTP 404.
+- Not-found resources return HTTP 404 with a branded error page.
 - Empty titles are rejected on update (redirect back to edit form).
 - SQLite persistence uses the database URL configured in `DATABASE_URL`.
 
@@ -83,4 +112,5 @@ Tasks have CSS classes that indicate their state for any UI interaction or scrap
 
 - If the app is unreachable, confirm the container or local process is running.
 - If database startup fails, verify that the SQLite target directory is writable.
+- Check application logs (stdout) for structured error messages.
 - If behavior changes, update `docs/api.md` and this skill file together.

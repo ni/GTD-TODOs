@@ -39,6 +39,40 @@ docker compose down
 
 The application listens on `http://localhost:8080`.
 
+## Backup and Restore
+
+The SQLite database file is stored in the Docker volume at `/data/todo.db`. Back it up by copying the file or using the export endpoints:
+
+```bash
+# Copy the database file directly
+docker compose cp todo-app:/data/todo.db ./backup-todo.db
+
+# Or export data as CSV / JSON
+curl -o tasks.csv http://localhost:8080/export/tasks.csv
+curl -o projects.json http://localhost:8080/export/projects.json
+```
+
+To restore, copy the backup into the running container and restart:
+
+```bash
+docker compose down
+docker compose cp ./backup-todo.db todo-app:/data/todo.db
+docker compose up
+```
+
+If the container is not available for `docker compose cp`, you can copy
+directly into the named volume's mount point on the host:
+
+```bash
+# Find the volume's mount point
+docker volume inspect gtd-todos_todo_app_data --format '{{ .Mountpoint }}'
+
+# Copy the backup there (may require sudo on Linux)
+sudo cp ./backup-todo.db "$(docker volume inspect gtd-todos_todo_app_data --format '{{ .Mountpoint }}')/todo.db"
+```
+
+See [docs/api.md](docs/api.md) for full export endpoint documentation.
+
 ## Developer Commands
 
 Run tests:

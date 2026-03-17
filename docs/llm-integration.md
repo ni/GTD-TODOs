@@ -57,6 +57,27 @@ The app uses CSS classes to visually distinguish task states:
 
 Status badges use per-status colors to help quickly identify task state.
 
+## Export and Backup
+
+The app provides export endpoints for portable data backups:
+
+- `GET /export/tasks.csv` — CSV export of all tasks (optional `status` filter).
+- `GET /export/tasks.json` — JSON export of all tasks (optional `status` filter).
+- `GET /export/projects.csv` — CSV export of all projects.
+- `GET /export/projects.json` — JSON export of all projects.
+
+The SQLite database file can also be copied directly from the Docker volume:
+
+```bash
+docker compose cp todo-app:/data/todo.db ./backup.db
+```
+
+## Logging and Error Handling
+
+The application logs all requests with method, path, status code, and latency to stdout in a structured format. Lifecycle events, exports, and errors are also logged.
+
+HTTP errors (404, 500) return branded HTML error pages with navigation links.
+
 ## Companion Assets
 
 - `.github/copilot-instructions.md`
