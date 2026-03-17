@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Today – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-today">
+  <h1>Today</h1>
+
+  {% if overdue %}
+  <h2 class="section-heading section-overdue">Overdue</h2>
+  <ul class="task-list">
+    {% for task in overdue %}
+    <li class="task-item task-overdue">
+      <div class="task-header">
+        <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
+        </form>
+        <span class="task-title">{{ task.title }}</span>
+        <div class="task-meta">
+          <span class="badge badge-overdue">{{ task.due_date }}</span>
+          {% if task.project_id and projects.get(task.project_id) %}
+          <span class="badge badge-project">{{ projects[task.project_id] }}</span>
+          {% endif %}
+          {% if task.is_recurring %}
+          <span class="badge badge-recurring">&#x1f501;</span>
+          {% endif %}
+          <a href="/tasks/{{ task.id }}/edit" class="btn-edit">Edit</a>
+        </div>
+      </div>
+      {% if task.notes %}
+      <div class="task-notes">{{ render_markdown(task.notes) | safe }}</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if due_today %}
+  <h2 class="section-heading">Due Today</h2>
+  <ul class="task-list">
+    {% for task in due_today %}
+    <li class="task-item">
+      <div class="task-header">
+        <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
+        </form>
+        <span class="task-title">{{ task.title }}</span>
+        <div class="task-meta">
+          <span class="badge badge-due">{{ task.due_date }}</span>
+          {% if task.project_id and projects.get(task.project_id) %}
+          <span class="badge badge-project">{{ projects[task.project_id] }}</span>
+          {% endif %}
+          {% if task.is_recurring %}
+          <span class="badge badge-recurring">&#x1f501;</span>
+          {% endif %}
+          <a href="/tasks/{{ task.id }}/edit" class="btn-edit">Edit</a>
+        </div>
+      </div>
+      {% if task.notes %}
+      <div class="task-notes">{{ render_markdown(task.notes) | safe }}</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if not overdue and not due_today %}
+  <p class="empty-state">Nothing due today — you're all clear!</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,6 +1,7 @@
 """Task mutation and edit routes."""
 
 from datetime import UTC, date, datetime
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -31,16 +32,34 @@ RECURRENCE_OPTIONS = [
 
 router = APIRouter(tags=["tasks"])
 
+# Paths that are safe redirect targets from the referer header.
+_SAFE_REFERER_PREFIXES = ("/inbox", "/today", "/projects")
+
+
+def _redirect_back(request: Request, fallback: str = "/inbox") -> str:
+    """Extract a safe redirect path from the Referer header."""
+    referer = request.headers.get("referer", "")
+    if referer:
+        path = urlparse(referer).path
+        if any(path.startswith(prefix) for prefix in _SAFE_REFERER_PREFIXES):
+            return path
+    return fallback
+
 
 @router.post("/tasks")
 def create_task_route(
+    request: Request,
     title: str = Form(""),
+    project_id: str = Form(""),
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
     if not title.strip():
-        return RedirectResponse("/inbox", status_code=303)
-    create_task(session, title=title.strip())
-    return RedirectResponse("/inbox", status_code=303)
+        return RedirectResponse(_redirect_back(request), status_code=303)
+    kwargs: dict = {"title": title.strip()}
+    if project_id:
+        kwargs["project_id"] = int(project_id)
+    create_task(session, **kwargs)
+    return RedirectResponse(_redirect_back(request), status_code=303)
 
 
 @router.get("/tasks/{task_id}/edit", response_class=HTMLResponse)
@@ -104,21 +123,23 @@ def update_task_route(
 
 @router.post("/tasks/{task_id}/complete")
 def complete_task_route(
+    request: Request,
     task_id: int,
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
     task = complete_task(session, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return RedirectResponse("/inbox", status_code=303)
+    return RedirectResponse(_redirect_back(request), status_code=303)
 
 
 @router.post("/tasks/{task_id}/reopen")
 def reopen_task_route(
+    request: Request,
     task_id: int,
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
     task = reopen_task(session, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return RedirectResponse("/inbox", status_code=303)
+    return RedirectResponse(_redirect_back(request), status_code=303)

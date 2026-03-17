@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Projects – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-projects">
+  <h1>Projects</h1>
+
+  <form class="quick-add" action="/projects" method="post">
+    <input type="text" name="name" placeholder="New project name…" required autocomplete="off">
+    <button type="submit">Create</button>
+  </form>
+
+  {% if projects %}
+  <ul class="project-list">
+    {% for project in projects %}
+    <li class="project-item">
+      <a href="/projects/{{ project.id }}" class="project-link">
+        <span class="project-name">{{ project.name }}</span>
+        {% if project.description %}
+        <span class="project-desc">{{ project.description }}</span>
+        {% endif %}
+      </a>
+      <div class="project-meta">
+        {% set c = counts.get(project.id, {"open": 0, "due_today": 0}) %}
+        <span class="badge badge-count">{{ c.open }} open</span>
+        {% if c.due_today > 0 %}
+        <span class="badge badge-due">{{ c.due_today }} due today</span>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-state">No projects yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

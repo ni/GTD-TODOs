@@ -4,14 +4,18 @@
 
 - `GET /`: Redirects to `/inbox`.
 - `GET /inbox`: Inbox page showing tasks with `inbox` status and a quick-add form.
+- `GET /today`: Today page showing overdue tasks and tasks due today.
+- `GET /projects`: Projects list showing all non-archived projects with task counts.
+- `GET /projects/{project_id}`: Project detail page with tasks grouped by GTD status.
 - `GET /tasks/{task_id}/edit`: Edit form for a single task.
 
 ## Mutation Routes
 
-- `POST /tasks`: Create a new task (defaults to `inbox` status). Redirects to `/inbox`.
+- `POST /tasks`: Create a new task (defaults to `inbox` status). Accepts optional `project_id` for project quick-add. Redirects back to the referring page.
 - `POST /tasks/{task_id}/update`: Update task fields from the edit form. Redirects to `/inbox`.
-- `POST /tasks/{task_id}/complete`: Complete a task. Non-recurring tasks move to `done`; recurring tasks advance `due_date`. Redirects to `/inbox`.
-- `POST /tasks/{task_id}/reopen`: Reopen a completed task back to `inbox`. Redirects to `/inbox`.
+- `POST /tasks/{task_id}/complete`: Complete a task. Non-recurring tasks move to `done`; recurring tasks advance `due_date`. Redirects back to the referring page.
+- `POST /tasks/{task_id}/reopen`: Reopen a completed task back to `inbox`. Redirects back to the referring page.
+- `POST /projects`: Create a new project. Redirects to `/projects`.
 
 ## Operational Routes
 
@@ -61,6 +65,16 @@ No form fields required. Redirects to `/inbox`. Returns 404 if task not found.
 ### `POST /tasks/{task_id}/reopen`
 
 No form fields required. Redirects to `/inbox`. Returns 404 if task not found.
+
+### `POST /projects`
+
+Form fields:
+
+| Field | Required | Notes |
+|---|---|---|
+| `name` | Yes | Project name (empty names are ignored) |
+
+Redirects to `/projects` on success.
 
 ## Data Model
 
@@ -140,4 +154,42 @@ Populate the database with sample data for local testing:
 python -m app.seed
 ```
 
-Future phases will expand this document with Today view, project detail pages, filtering, and HTMX partial behaviors.
+Future phases will expand this document with filtering, search, and HTMX partial behaviors.
+
+---
+
+## Today View
+
+### `GET /today`
+
+Displays two sections:
+
+1. **Overdue** — Tasks whose `due_date` is before today and `status` is not `done`. Sorted by `due_date` ascending, then `created_at`.
+2. **Due Today** — Tasks whose `due_date` equals today and `status` is not `done`. Sorted by `created_at`.
+
+Recurring tasks whose next due date is today appear alongside one-time tasks. Tasks without a due date do not appear. Done tasks are excluded.
+
+Each task shows a complete button, title, due-date badge, project badge (if assigned), and recurrence indicator.
+
+---
+
+## Projects Views
+
+### `GET /projects`
+
+Lists all non-archived projects. Each project shows:
+
+- Project name (links to detail page)
+- Description (if present)
+- Open task count (all non-done tasks)
+- Due-today task count (if any)
+
+### `GET /projects/{project_id}`
+
+Shows project metadata and all tasks assigned to that project, grouped by GTD status:
+
+- Inbox, Next Action, Waiting For, Scheduled, Someday / Maybe, Done
+
+Each group appears as a section heading followed by its tasks. Includes a quick-add form scoped to the project.
+
+Returns 404 if the project does not exist.

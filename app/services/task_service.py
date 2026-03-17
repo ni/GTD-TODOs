@@ -58,6 +58,30 @@ def list_tasks(
     return list(session.exec(stmt).all())
 
 
+def list_tasks_due_today(session: Session) -> list[Task]:
+    """Return non-done tasks whose due_date equals today."""
+    today = date.today()
+    stmt = (
+        select(Task)
+        .where(Task.due_date == today)
+        .where(Task.status != TaskStatus.DONE)
+        .order_by(Task.created_at)  # type: ignore[arg-type]
+    )
+    return list(session.exec(stmt).all())
+
+
+def list_tasks_overdue(session: Session) -> list[Task]:
+    """Return non-done tasks whose due_date is before today."""
+    today = date.today()
+    stmt = (
+        select(Task)
+        .where(Task.due_date < today)  # type: ignore[operator]
+        .where(Task.status != TaskStatus.DONE)
+        .order_by(Task.due_date, Task.created_at)  # type: ignore[arg-type]
+    )
+    return list(session.exec(stmt).all())
+
+
 def update_task(
     session: Session,
     task_id: int,
