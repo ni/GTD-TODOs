@@ -14,12 +14,13 @@
   </head>
   <body>
     <nav class="top-nav">
-      <a href="/inbox" class="nav-brand">{{ app_name | default('GTD TODOs') }}</a>
+      <a href="/inbox" class="nav-brand"><img src="{{ url_for('static', path='favicon.svg') }}" alt="" class="nav-logo">{{ app_name | default('GTD TODOs') }}</a>
+      {% set nc = nav_counts | default({}) %}
       <ul class="nav-links">
-        <li><a href="/inbox">Inbox</a></li>
-        <li><a href="/today">Today</a></li>
+        <li><a href="/inbox">Inbox{% if nc.inbox %} <span class="nav-badge nav-badge-green">{{ nc.inbox }}</span>{% endif %}</a></li>
+        <li><a href="/today">Today{% if nc.today %} <span class="nav-badge {% if nc.overdue %}nav-badge-red{% else %}nav-badge-blue{% endif %}">{{ nc.today }}</span>{% endif %}</a></li>
+        <li><a href="/tasks">All Tasks{% if nc.all_tasks %} <span class="nav-badge {% if nc.overdue %}nav-badge-red{% elif nc.due_today %}nav-badge-blue{% endif %}">{{ nc.all_tasks }}</span>{% endif %}</a></li>
         <li><a href="/projects">Projects</a></li>
-        <li><a href="/tasks">All Tasks</a></li>
       </ul>
     </nav>
     <main class="shell">

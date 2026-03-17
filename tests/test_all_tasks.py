@@ -24,7 +24,7 @@ class TestAllTasksPage:
         create_task(db_session, title="Alpha")
         create_task(db_session, title="Beta", status=TaskStatus.DONE)
         create_task(db_session, title="Gamma", status=TaskStatus.NEXT_ACTION)
-        response = client.get("/tasks")
+        response = client.get("/tasks?status=")
         assert "Alpha" in response.text
         assert "Beta" in response.text
         assert "Gamma" in response.text
@@ -300,7 +300,7 @@ class TestAllTasksVisualDistinction:
         self, client: TestClient, db_session: Session
     ) -> None:
         create_task(db_session, title="Finished item", status=TaskStatus.DONE)
-        response = client.get("/tasks")
+        response = client.get("/tasks?status=done")
         assert "task-done" in response.text
 
     def test_inbox_task_has_class(
@@ -367,3 +367,144 @@ class TestAllTasksRedirects:
         )
         assert response.status_code == 303
         assert "/tasks" in response.headers["location"]
+
+
+# ---------------------------------------------------------------------------
+# Default filter: All In Work (excludes Done)
+# ---------------------------------------------------------------------------
+
+
+class TestAllInWorkFilter:
+    def test_default_excludes_done(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(db_session, title="Active task", status=TaskStatus.INBOX)
+        create_task(db_session, title="Finished task", status=TaskStatus.DONE)
+        response = client.get("/tasks")
+        assert "Active task" in response.text
+        assert "Finished task" not in response.text
+
+    def test_all_in_work_explicit(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(db_session, title="Todo item", status=TaskStatus.NEXT_ACTION)
+        create_task(db_session, title="Completed item", status=TaskStatus.DONE)
+        response = client.get("/tasks?status=all_in_work")
+        assert "Todo item" in response.text
+        assert "Completed item" not in response.text
+
+    def test_all_in_work_option_in_filter(self, client: TestClient) -> None:
+        response = client.get("/tasks")
+        assert "All In Work" in response.text
+
+    def test_all_in_work_selected_by_default(self, client: TestClient) -> None:
+        response = client.get("/tasks")
+        assert 'value="all_in_work" selected' in response.text
+
+    def test_status_all_shows_done(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(db_session, title="Done visible", status=TaskStatus.DONE)
+        response = client.get("/tasks?status=")
+        assert "Done visible" in response.text
+
+
+# ---------------------------------------------------------------------------
+# Nav badge counts
+# ---------------------------------------------------------------------------
+
+
+class TestNavBadgeCounts:
+    def test_inbox_badge_count(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(db_session, title="Inbox 1")
+        create_task(db_session, title="Inbox 2")
+        create_task(db_session, title="Done one", status=TaskStatus.DONE)
+        response = client.get("/inbox")
+        assert '<span class="nav-badge nav-badge-green">2</span>' in response.text
+
+    def test_today_badge_red_when_overdue(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(
+            db_session,
+            title="Due today",
+            due_date=date.today(),
+            status=TaskStatus.NEXT_ACTION,
+        )
+        create_task(
+            db_session,
+            title="Overdue",
+            due_date=date.today() - timedelta(days=1),
+            status=TaskStatus.NEXT_ACTION,
+        )
+        response = client.get("/today")
+        text = response.text
+        assert "nav-badge-red" in text
+        assert ">2</span>" in text
+
+    def test_today_badge_blue_when_no_overdue(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(
+            db_session,
+            title="Due today",
+            due_date=date.today(),
+            status=TaskStatus.NEXT_ACTION,
+        )
+        response = client.get("/today")
+        text = response.text
+        assert "nav-badge-blue" in text
+        assert "nav-badge-red" not in text
+
+    def test_all_tasks_badge_red_when_overdue(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(db_session, title="Task A")
+        create_task(
+            db_session,
+            title="Task B",
+            due_date=date.today() - timedelta(days=1),
+            status=TaskStatus.NEXT_ACTION,
+        )
+        response = client.get("/tasks")
+        assert "nav-badge-red" in response.text
+
+    def test_all_tasks_badge_blue_when_due_today_only(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(
+            db_session,
+            title="Task A",
+            due_date=date.today(),
+            status=TaskStatus.NEXT_ACTION,
+        )
+        response = client.get("/tasks")
+        text = response.text
+        assert "nav-badge-blue" in text
+        assert "nav-badge-red" not in text
+
+    def test_all_tasks_badge_grey_when_no_date_urgency(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        create_task(db_session, title="Task A")
+        response = client.get("/tasks")
+        text = response.text
+        assert "nav-badge-red" not in text
+        assert "nav-badge-blue" not in text
+        # Should use the default grey .nav-badge style
+        assert 'class="nav-badge "' in text
+
+    def test_no_badge_when_zero(self, client: TestClient) -> None:
+        response = client.get("/inbox")
+        # No nav-badge should appear when counts are 0
+        assert "nav-badge" not in response.text
+
+    def test_nav_order(self, client: TestClient) -> None:
+        """All Tasks tab appears before Projects in the nav."""
+        response = client.get("/inbox")
+        text = response.text
+        all_tasks_pos = text.index('href="/tasks"')
+        projects_pos = text.index('href="/projects"')
+        assert all_tasks_pos < projects_pos

@@ -7,6 +7,7 @@
   <h1>Edit Task</h1>
 
   <form action="/tasks/{{ task.id }}/update" method="post" class="edit-form">
+    <input type="hidden" name="back_url" value="{{ back_url }}">
     <div class="form-group">
       <label for="title">Title</label>
       <input type="text" id="title" name="title" value="{{ task.title }}" required>
@@ -70,8 +71,9 @@
     </fieldset>
 
     <div class="form-actions">
-      <button type="submit" class="btn-primary">Save</button>
-      <a href="/inbox" class="btn-secondary">Cancel</a>
+      <button type="submit" name="action" value="save" class="btn-primary">Save</button>
+      <button type="submit" name="action" value="close" class="btn-primary">Save and Close</button>
+      <a href="{{ back_url }}" class="btn-secondary">Cancel</a>
     </div>
   </form>
 

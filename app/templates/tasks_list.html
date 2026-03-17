@@ -17,6 +17,7 @@
         <label for="f-status">Status</label>
         <select id="f-status" name="status">
           <option value="">All</option>
+          <option value="all_in_work" {% if f_status == "all_in_work" %}selected{% endif %}>All In Work</option>
           {% for value, label in status_labels.items() %}
           <option value="{{ value }}" {% if f_status == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}

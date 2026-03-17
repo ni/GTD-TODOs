@@ -15,6 +15,7 @@ from app.services.project_service import (
     list_projects,
 )
 from app.services.task_service import (
+    get_nav_counts,
     list_tasks,
     list_tasks_due_today,
     list_tasks_overdue,
@@ -43,6 +44,7 @@ def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResp
     settings = get_settings()
     tasks = list_tasks(session, status=TaskStatus.INBOX)
     projects_map = {p.id: p.name for p in list_projects(session)}
+    nav_counts = get_nav_counts(session)
     return templates.TemplateResponse(
         request,
         "inbox.html",
@@ -50,6 +52,7 @@ def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResp
             "app_name": settings.app_name,
             "tasks": tasks,
             "projects": projects_map,
+            "nav_counts": nav_counts,
         },
     )
 
@@ -60,6 +63,7 @@ def today(request: Request, session: Session = Depends(get_session)) -> HTMLResp
     overdue = list_tasks_overdue(session)
     due_today = list_tasks_due_today(session)
     projects_map = {p.id: p.name for p in list_projects(session)}
+    nav_counts = get_nav_counts(session)
     return templates.TemplateResponse(
         request,
         "today.html",
@@ -68,6 +72,7 @@ def today(request: Request, session: Session = Depends(get_session)) -> HTMLResp
             "overdue": overdue,
             "due_today": due_today,
             "projects": projects_map,
+            "nav_counts": nav_counts,
         },
     )
 
@@ -79,6 +84,7 @@ def projects_list(
     settings = get_settings()
     projects = list_projects(session)
     counts = {p.id: get_project_task_counts(session, p.id) for p in projects}  # type: ignore[arg-type]
+    nav_counts = get_nav_counts(session)
     return templates.TemplateResponse(
         request,
         "projects_list.html",
@@ -86,6 +92,7 @@ def projects_list(
             "app_name": settings.app_name,
             "projects": projects,
             "counts": counts,
+            "nav_counts": nav_counts,
         },
     )
 
@@ -119,6 +126,7 @@ def project_detail(
         label = STATUS_LABELS.get(task.status.value, task.status.value)
         grouped.setdefault(label, []).append(task)
 
+    nav_counts = get_nav_counts(session)
     return templates.TemplateResponse(
         request,
         "project_detail.html",
@@ -127,6 +135,7 @@ def project_detail(
             "project": project,
             "grouped_tasks": grouped,
             "status_labels": STATUS_LABELS,
+            "nav_counts": nav_counts,
         },
     )
 
@@ -134,7 +143,7 @@ def project_detail(
 @router.get("/tasks", response_class=HTMLResponse)
 def all_tasks(
     request: Request,
-    status: str = "",
+    status: str = "all_in_work",
     project_id: str = "",
     q: str = "",
     has_due_date: str = "",
@@ -151,11 +160,15 @@ def all_tasks(
 
     # Parse filters
     status_filter = None
-    try:
-        if status:
-            status_filter = _TS(status)
-    except ValueError:
-        pass
+    exclude_done = False
+    if status == "all_in_work":
+        exclude_done = True
+    else:
+        try:
+            if status:
+                status_filter = _TS(status)
+        except ValueError:
+            pass
 
     pid: int | None = None
     no_project = False
@@ -182,6 +195,7 @@ def all_tasks(
     tasks = search_tasks(
         session,
         status=status_filter,
+        exclude_done=exclude_done,
         project_id=pid,
         no_project=no_project,
         q=q.strip() if q else None,
@@ -190,6 +204,7 @@ def all_tasks(
     )
 
     today = _date.today()
+    nav_counts = get_nav_counts(session)
 
     return templates.TemplateResponse(
         request,
@@ -201,6 +216,7 @@ def all_tasks(
             "projects_list": projects_list_all,
             "status_labels": STATUS_LABELS,
             "today": today,
+            "nav_counts": nav_counts,
             # Current filter values for the form
             "f_status": status,
             "f_project_id": project_id,
