@@ -171,6 +171,7 @@ def search_tasks(
     session: Session,
     *,
     status: TaskStatus | None = None,
+    exclude_done: bool = False,
     project_id: int | None = None,
     no_project: bool = False,
     q: str | None = None,
@@ -181,6 +182,8 @@ def search_tasks(
     stmt = select(Task)
     if status is not None:
         stmt = stmt.where(Task.status == status)
+    elif exclude_done:
+        stmt = stmt.where(Task.status != TaskStatus.DONE)
     if no_project:
         stmt = stmt.where(Task.project_id.is_(None))  # type: ignore[union-attr]
     elif project_id is not None:
@@ -200,6 +203,50 @@ def search_tasks(
         stmt = stmt.where(Task.is_recurring == False)  # noqa: E712
     stmt = stmt.order_by(Task.due_date, Task.created_at)  # type: ignore[arg-type]
     return list(session.exec(stmt).all())
+
+
+def get_nav_counts(session: Session) -> dict[str, int]:
+    """Return uncompleted task counts for nav badges."""
+    today = date.today()
+    inbox = len(
+        list(
+            session.exec(
+                select(Task).where(Task.status == TaskStatus.INBOX)
+            ).all()
+        )
+    )
+    overdue_count = len(
+        list(
+            session.exec(
+                select(Task)
+                .where(Task.due_date < today)  # type: ignore[operator]
+                .where(Task.status != TaskStatus.DONE)
+            ).all()
+        )
+    )
+    due_today_count = len(
+        list(
+            session.exec(
+                select(Task)
+                .where(Task.due_date == today)
+                .where(Task.status != TaskStatus.DONE)
+            ).all()
+        )
+    )
+    all_not_done = len(
+        list(
+            session.exec(
+                select(Task).where(Task.status != TaskStatus.DONE)
+            ).all()
+        )
+    )
+    return {
+        "inbox": inbox,
+        "today": overdue_count + due_today_count,
+        "overdue": overdue_count,
+        "due_today": due_today_count,
+        "all_tasks": all_not_done,
+    }
 
 
 def reopen_task(session: Session, task_id: int) -> Task | None:

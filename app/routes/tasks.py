@@ -74,6 +74,7 @@ def edit_task_page(
 
     settings = get_settings()
     projects = list_projects(session)
+    back_url = _redirect_back(request)
     return templates.TemplateResponse(
         request,
         "task_edit.html",
@@ -83,6 +84,7 @@ def edit_task_page(
             "projects": projects,
             "statuses": STATUS_OPTIONS,
             "recurrence_types": RECURRENCE_OPTIONS,
+            "back_url": back_url,
         },
     )
 
@@ -99,6 +101,8 @@ def update_task_route(
     recurrence_type: str = Form(""),
     recurrence_interval_days: str = Form(""),
     project_id: str = Form(""),
+    action: str = Form("save"),
+    back_url: str = Form("/inbox"),
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
     task = session.get(Task, task_id)
@@ -122,7 +126,13 @@ def update_task_route(
 
     session.add(task)
     session.commit()
-    return RedirectResponse(_redirect_back(request), status_code=303)
+
+    if action == "close":
+        safe_back = back_url
+        if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
+            safe_back = "/inbox"
+        return RedirectResponse(safe_back, status_code=303)
+    return RedirectResponse(f"/tasks/{task_id}/edit", status_code=303)
 
 
 @router.post("/tasks/{task_id}/complete")
