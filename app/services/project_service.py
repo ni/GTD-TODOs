@@ -89,3 +89,30 @@ def get_project_task_counts(
         .where(Task.status != TaskStatus.DONE)
     ).one()
     return {"open": int(open_count), "due_today": int(due_today_count)}
+
+
+def can_complete_project(session: Session, project_id: int) -> bool:
+    """Return True when every task under the project is done (or there are none)."""
+    open_count = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.project_id == project_id)
+        .where(Task.status != TaskStatus.DONE)
+    ).one()
+    return int(open_count) == 0
+
+
+def complete_project(session: Session, project_id: int) -> Project | None:
+    """Mark a project complete if all its tasks are done."""
+    project = session.get(Project, project_id)
+    if project is None:
+        return None
+    if not can_complete_project(session, project_id):
+        return None
+    now = datetime.now(UTC)
+    project.completed_at = now
+    project.updated_at = now
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    return project

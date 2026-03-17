@@ -652,6 +652,55 @@ h1 {
   margin: -0.75rem 0 1.5rem;
 }
 
+/* --- Project completion --- */
+
+.project-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.project-heading h1 {
+  margin-bottom: 0;
+}
+
+.btn-complete-project {
+  padding: 0.45rem 1.2rem;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-complete-project:hover:not(.btn-disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-complete-project.btn-disabled {
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.badge-completed {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+.project-completed {
+  opacity: 0.6;
+}
+
 /* --- Legacy hero (index.html) --- */
 
 .hero {

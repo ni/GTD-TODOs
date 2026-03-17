@@ -6,11 +6,14 @@ from sqlmodel import Session
 
 from app.services.project_service import (
     archive_project,
+    can_complete_project,
+    complete_project,
     create_project,
     get_project,
     list_projects,
     update_project,
 )
+from app.services.task_service import complete_task, create_task
 
 
 def test_create_project(db_session: Session) -> None:
@@ -104,5 +107,59 @@ def test_archive_project(db_session: Session) -> None:
 
 def test_archive_project_not_found(db_session: Session) -> None:
     result = archive_project(db_session, 9999)
+
+    assert result is None
+
+
+# --- Project completion ---
+
+
+def test_can_complete_project_no_tasks(db_session: Session) -> None:
+    project = create_project(db_session, name="Empty")
+
+    assert can_complete_project(db_session, project.id) is True  # type: ignore[arg-type]
+
+
+def test_can_complete_project_all_done(db_session: Session) -> None:
+    project = create_project(db_session, name="All Done")
+    task = create_task(db_session, title="T1", project_id=project.id)
+    complete_task(db_session, task.id)  # type: ignore[arg-type]
+
+    assert can_complete_project(db_session, project.id) is True  # type: ignore[arg-type]
+
+
+def test_can_complete_project_open_tasks(db_session: Session) -> None:
+    project = create_project(db_session, name="In Progress")
+    create_task(db_session, title="Open task", project_id=project.id)
+
+    assert can_complete_project(db_session, project.id) is False  # type: ignore[arg-type]
+
+
+def test_complete_project(db_session: Session) -> None:
+    project = create_project(db_session, name="Finishable")
+    task = create_task(db_session, title="Done task", project_id=project.id)
+    complete_task(db_session, task.id)  # type: ignore[arg-type]
+
+    result = complete_project(db_session, project.id)  # type: ignore[arg-type]
+
+    assert result is not None
+    assert result.completed_at is not None
+    assert isinstance(result.completed_at, datetime)
+
+
+def test_complete_project_blocked_by_open_tasks(db_session: Session) -> None:
+    project = create_project(db_session, name="Blocked")
+    create_task(db_session, title="Still open", project_id=project.id)
+
+    result = complete_project(db_session, project.id)  # type: ignore[arg-type]
+
+    assert result is None
+    refreshed = get_project(db_session, project.id)  # type: ignore[arg-type]
+    assert refreshed is not None
+    assert refreshed.completed_at is None
+
+
+def test_complete_project_not_found(db_session: Session) -> None:
+    result = complete_project(db_session, 9999)
 
     assert result is None

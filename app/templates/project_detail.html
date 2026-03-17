@@ -4,7 +4,18 @@
 
 {% block content %}
 <section class="page-project-detail">
-  <h1>{{ project.name }}</h1>
+  <div class="project-heading">
+    <h1>{{ project.name }}</h1>
+    {% if project.completed_at %}
+    <span class="badge badge-completed">Completed</span>
+    {% else %}
+    <form class="inline-form" action="/projects/{{ project.id }}/complete" method="post">
+      <button type="submit" class="btn-complete-project{% if not can_complete %} btn-disabled{% endif %}" {% if not can_complete %}disabled title="Complete all tasks first"{% else %}title="Complete project"{% endif %}>
+        &#x2713; Complete Project
+      </button>
+    </form>
+    {% endif %}
+  </div>
   {% if project.description %}
   <p class="project-description">{{ project.description }}</p>
   {% endif %}
