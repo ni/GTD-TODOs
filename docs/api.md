@@ -22,6 +22,15 @@
 
 - `GET /health`: Returns JSON health status.
 
+## Export Routes
+
+- `GET /export/tasks.csv`: Export all tasks as CSV. Optional `status` query parameter to filter.
+- `GET /export/tasks.json`: Export all tasks as JSON. Optional `status` query parameter to filter.
+- `GET /export/projects.csv`: Export all projects as CSV.
+- `GET /export/projects.json`: Export all projects as JSON.
+
+All export responses include a `Content-Disposition` header with a date-stamped filename.
+
 ### `GET /health`
 
 Response:
@@ -234,3 +243,118 @@ Visual CSS classes applied to task items:
 - `.task-inbox` — task status is inbox
 
 Example request: `GET /tasks?status=inbox&q=groceries&has_due_date=yes`
+
+---
+
+## Error Handling
+
+The application returns custom HTML error pages for common HTTP errors:
+
+- **404 Not Found**: Rendered as a branded HTML page with navigation links back to Inbox, Today, Projects, and All Tasks.
+- **500 Internal Server Error**: Rendered as a branded HTML page. The underlying error is logged server-side for diagnosis.
+
+All errors are logged using structured logging (see Logging below).
+
+---
+
+## Logging
+
+The application uses Python's standard `logging` module with a structured format:
+
+```
+2026-03-17T10:30:00+0000 INFO     app  GET /inbox 200 12.3ms
+```
+
+Log output includes:
+
+- Timestamp in ISO 8601 format
+- Log level
+- Logger name (`app`)
+- Message (request method, path, status code, and latency for HTTP requests)
+
+Lifecycle events (startup, shutdown, database initialisation) and export actions are also logged.
+
+---
+
+## Export Endpoints
+
+### `GET /export/tasks.csv`
+
+Returns all tasks as a CSV file. Accepts an optional `status` query parameter to filter by GTD status.
+
+Response headers:
+
+- `Content-Type: text/csv`
+- `Content-Disposition: attachment; filename=tasks-YYYY-MM-DD.csv`
+
+CSV columns: `id`, `title`, `notes`, `status`, `due_date`, `is_recurring`, `recurrence_type`, `recurrence_interval_days`, `last_completed_at`, `project_id`, `created_at`, `updated_at`, `completed_at`.
+
+### `GET /export/tasks.json`
+
+Returns all tasks as a JSON array. Accepts an optional `status` query parameter.
+
+Response headers:
+
+- `Content-Type: application/json`
+- `Content-Disposition: attachment; filename=tasks-YYYY-MM-DD.json`
+
+### `GET /export/projects.csv`
+
+Returns all projects as a CSV file.
+
+CSV columns: `id`, `name`, `description`, `created_at`, `updated_at`, `archived_at`.
+
+### `GET /export/projects.json`
+
+Returns all projects as a JSON array.
+
+---
+
+## Backup and Data Persistence
+
+### Database Location
+
+The SQLite database file lives at the path defined by the `DATABASE_URL` environment variable. In Docker, the default is `/data/todo.db`, mounted as a named volume.
+
+### Backup Procedure
+
+SQLite is a single file. To back up the database:
+
+1. **Copy the file while the app is running** (SQLite supports safe reads during writes):
+
+   ```bash
+   # Docker: copy from the named volume
+   docker compose cp todo-app:/data/todo.db ./backup-todo.db
+
+   # Local development
+   cp ./data/todo.db ./backup-todo.db
+   ```
+
+2. **Use the export endpoints** for a portable, human-readable backup:
+
+   ```bash
+   curl -o tasks.csv http://localhost:8080/export/tasks.csv
+   curl -o tasks.json http://localhost:8080/export/tasks.json
+   curl -o projects.csv http://localhost:8080/export/projects.csv
+   curl -o projects.json http://localhost:8080/export/projects.json
+   ```
+
+### Restore
+
+Copy the backup into the container and restart:
+
+```bash
+docker compose down
+docker compose cp ./backup-todo.db todo-app:/data/todo.db
+docker compose up
+```
+
+If the container is not available for `docker compose cp`, copy directly into the named volume:
+
+```bash
+# Find the volume mount point
+docker volume inspect gtd-todos_todo_app_data --format '{{ .Mountpoint }}'
+
+# Copy (may require sudo on Linux)
+sudo cp ./backup-todo.db "$(docker volume inspect gtd-todos_todo_app_data --format '{{ .Mountpoint }}')/todo.db"
+```

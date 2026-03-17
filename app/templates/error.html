@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ status_code }} — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="error-page">
+  <h1>{{ status_code }}</h1>
+  <p class="error-detail">{{ detail }}</p>
+  <nav class="error-nav">
+    <a href="/inbox">Inbox</a>
+    <a href="/today">Today</a>
+    <a href="/projects">Projects</a>
+    <a href="/tasks">All Tasks</a>
+  </nav>
+</div>
+{% endblock %}
