@@ -45,7 +45,7 @@ def list_projects(
     if not include_archived:
         stmt = stmt.where(Project.archived_at.is_(None))  # type: ignore[union-attr]
     stmt = stmt.order_by(Project.name)
-    return list(session.exec(stmt).all())
+    return session.exec(stmt).all()  # type: ignore[return-value]
 
 
 def update_project(

@@ -417,7 +417,7 @@ class TestProjectDetailPage:
         response = client.get(f"/projects/{project.id}")
         assert "Completed" in response.text
 
-    def test_complete_project_blocked_returns_404(
+    def test_complete_project_blocked_returns_409(
         self, client: TestClient, db_session: Session
     ) -> None:
         project = create_project(db_session, name="Blocked")
@@ -425,7 +425,7 @@ class TestProjectDetailPage:
         response = client.post(
             f"/projects/{project.id}/complete", follow_redirects=False
         )
-        assert response.status_code == 404
+        assert response.status_code == 409
 
     def test_completed_project_shows_badge_in_list(
         self, client: TestClient, db_session: Session

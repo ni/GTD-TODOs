@@ -3,10 +3,12 @@
 from calendar import monthrange
 from datetime import UTC, date, datetime, timedelta
 
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
 from app.models import RecurrenceType, Task, TaskStatus
 from app.services.project_service import count_overdue_projects
+
+_UNSET = object()
 
 
 def create_task(
@@ -56,7 +58,7 @@ def list_tasks(
     if project_id is not None:
         stmt = stmt.where(Task.project_id == project_id)
     stmt = stmt.order_by(Task.due_date, Task.created_at)  # type: ignore[arg-type]
-    return list(session.exec(stmt).all())
+    return session.exec(stmt).all()  # type: ignore[return-value]
 
 
 def list_tasks_due_today(session: Session) -> list[Task]:
@@ -68,7 +70,7 @@ def list_tasks_due_today(session: Session) -> list[Task]:
         .where(Task.status != TaskStatus.DONE)
         .order_by(Task.created_at)  # type: ignore[arg-type]
     )
-    return list(session.exec(stmt).all())
+    return session.exec(stmt).all()  # type: ignore[return-value]
 
 
 def list_tasks_overdue(session: Session) -> list[Task]:
@@ -80,7 +82,7 @@ def list_tasks_overdue(session: Session) -> list[Task]:
         .where(Task.status != TaskStatus.DONE)
         .order_by(Task.due_date, Task.created_at)  # type: ignore[arg-type]
     )
-    return list(session.exec(stmt).all())
+    return session.exec(stmt).all()  # type: ignore[return-value]
 
 
 def update_task(
@@ -88,33 +90,33 @@ def update_task(
     task_id: int,
     *,
     title: str | None = None,
-    notes: str | None = None,
+    notes: object = _UNSET,
     status: TaskStatus | None = None,
-    due_date: date | None = None,
+    due_date: object = _UNSET,
     is_recurring: bool | None = None,
-    recurrence_type: RecurrenceType | None = None,
-    recurrence_interval_days: int | None = None,
-    project_id: int | None = None,
+    recurrence_type: object = _UNSET,
+    recurrence_interval_days: object = _UNSET,
+    project_id: object = _UNSET,
 ) -> Task | None:
     task = session.get(Task, task_id)
     if task is None:
         return None
     if title is not None:
         task.title = title
-    if notes is not None:
-        task.notes = notes
+    if notes is not _UNSET:
+        task.notes = notes  # type: ignore[assignment]
     if status is not None:
         task.status = status
-    if due_date is not None:
-        task.due_date = due_date
+    if due_date is not _UNSET:
+        task.due_date = due_date  # type: ignore[assignment]
     if is_recurring is not None:
         task.is_recurring = is_recurring
-    if recurrence_type is not None:
-        task.recurrence_type = recurrence_type
-    if recurrence_interval_days is not None:
-        task.recurrence_interval_days = recurrence_interval_days
-    if project_id is not None:
-        task.project_id = project_id
+    if recurrence_type is not _UNSET:
+        task.recurrence_type = recurrence_type  # type: ignore[assignment]
+    if recurrence_interval_days is not _UNSET:
+        task.recurrence_interval_days = recurrence_interval_days  # type: ignore[assignment]
+    if project_id is not _UNSET:
+        task.project_id = project_id  # type: ignore[assignment]
     task.updated_at = datetime.now(UTC)
     session.add(task)
     session.commit()
@@ -138,7 +140,7 @@ def _advance_due_date(
         return date(year, month, day)
     if recurrence_type == RecurrenceType.INTERVAL_DAYS:
         return current + timedelta(days=interval_days or 1)
-    return current + timedelta(days=1)
+    raise ValueError(f"Unknown recurrence type: {recurrence_type!r}")
 
 
 def complete_task(session: Session, task_id: int) -> Task | None:
@@ -203,50 +205,40 @@ def search_tasks(
     elif is_recurring is False:
         stmt = stmt.where(Task.is_recurring == False)  # noqa: E712
     stmt = stmt.order_by(Task.due_date, Task.created_at)  # type: ignore[arg-type]
-    return list(session.exec(stmt).all())
+    return session.exec(stmt).all()  # type: ignore[return-value]
 
 
 def get_nav_counts(session: Session) -> dict[str, int]:
     """Return uncompleted task counts for nav badges."""
     today = date.today()
-    inbox = len(
-        list(
-            session.exec(
-                select(Task).where(Task.status == TaskStatus.INBOX)
-            ).all()
-        )
-    )
-    overdue_count = len(
-        list(
-            session.exec(
-                select(Task)
-                .where(Task.due_date < today)  # type: ignore[operator]
-                .where(Task.status != TaskStatus.DONE)
-            ).all()
-        )
-    )
-    due_today_count = len(
-        list(
-            session.exec(
-                select(Task)
-                .where(Task.due_date == today)
-                .where(Task.status != TaskStatus.DONE)
-            ).all()
-        )
-    )
-    all_not_done = len(
-        list(
-            session.exec(
-                select(Task).where(Task.status != TaskStatus.DONE)
-            ).all()
-        )
-    )
+    inbox = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.status == TaskStatus.INBOX)
+    ).one()
+    overdue_count = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.due_date < today)  # type: ignore[operator]
+        .where(Task.status != TaskStatus.DONE)
+    ).one()
+    due_today_count = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.due_date == today)
+        .where(Task.status != TaskStatus.DONE)
+    ).one()
+    all_not_done = session.exec(
+        select(func.count())
+        .select_from(Task)
+        .where(Task.status != TaskStatus.DONE)
+    ).one()
     return {
-        "inbox": inbox,
-        "today": overdue_count + due_today_count,
-        "overdue": overdue_count,
-        "due_today": due_today_count,
-        "all_tasks": all_not_done,
+        "inbox": int(inbox),
+        "today": int(overdue_count) + int(due_today_count),
+        "overdue": int(overdue_count),
+        "due_today": int(due_today_count),
+        "all_tasks": int(all_not_done),
         "overdue_projects": count_overdue_projects(session),
     }
 

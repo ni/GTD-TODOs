@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 DEFAULT_DATA_DIR = Path("/data")
@@ -24,6 +25,7 @@ class Settings:
         return Path(self.database_url.removeprefix(prefix))
 
 
+@lru_cache
 def get_settings() -> Settings:
     return Settings(
         app_name=os.getenv("APP_NAME", "GTD TODOs"),

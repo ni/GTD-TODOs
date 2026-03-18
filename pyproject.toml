@@ -9,11 +9,10 @@ description = "Local-first GTD TODO application built with FastAPI, HTMX-ready t
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-  "alembic>=1.14,<2.0",
-  "bleach>=6.2,<7.0",
   "fastapi>=0.115,<1.0",
   "jinja2>=3.1,<4.0",
   "markdown-it-py>=3.0,<4.0",
+  "nh3>=0.2,<1.0",
   "python-multipart>=0.0.20,<1.0",
   "sqlmodel>=0.0.22,<1.0",
   "uvicorn[standard]>=0.34,<1.0",
@@ -26,7 +25,6 @@ dev = [
   "pytest>=8.3,<9.0",
   "pytest-cov>=6.0,<7.0",
   "ruff>=0.11,<0.12",
-  "types-bleach>=6.2.0.20250809,<7.0",
 ]
 
 [tool.setuptools.packages.find]

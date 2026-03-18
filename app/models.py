@@ -18,6 +18,20 @@ class TaskStatus(str, Enum):
     SOMEDAY_MAYBE = "someday_maybe"
     DONE = "done"
 
+    @property
+    def label(self) -> str:
+        return _STATUS_LABELS[self]
+
+
+_STATUS_LABELS: dict[TaskStatus, str] = {
+    TaskStatus.INBOX: "Inbox",
+    TaskStatus.NEXT_ACTION: "Next Action",
+    TaskStatus.WAITING_FOR: "Waiting For",
+    TaskStatus.SCHEDULED: "Scheduled",
+    TaskStatus.SOMEDAY_MAYBE: "Someday / Maybe",
+    TaskStatus.DONE: "Done",
+}
+
 
 class RecurrenceType(str, Enum):
     DAILY = "daily"

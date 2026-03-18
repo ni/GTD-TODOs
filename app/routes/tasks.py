@@ -1,6 +1,6 @@
 """Task mutation and edit routes."""
 
-from datetime import UTC, date, datetime
+from datetime import date
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -12,16 +12,9 @@ from app.db import get_session
 from app.models import RecurrenceType, Task, TaskStatus
 from app.routes import templates
 from app.services.project_service import list_projects
-from app.services.task_service import complete_task, create_task, reopen_task
+from app.services.task_service import complete_task, create_task, reopen_task, update_task
 
-STATUS_OPTIONS = [
-    ("inbox", "Inbox"),
-    ("next_action", "Next Action"),
-    ("waiting_for", "Waiting For"),
-    ("scheduled", "Scheduled"),
-    ("someday_maybe", "Someday / Maybe"),
-    ("done", "Done"),
-]
+STATUS_OPTIONS = [(s.value, s.label) for s in TaskStatus]
 
 RECURRENCE_OPTIONS = [
     ("daily", "Daily"),
@@ -115,20 +108,20 @@ def update_task_route(
     if not title.strip():
         return RedirectResponse(f"/tasks/{task_id}/edit", status_code=303)
 
-    task.title = title
-    task.notes = notes if notes.strip() else None
-    task.status = TaskStatus(status)
-    task.due_date = date.fromisoformat(due_date) if due_date else None
-    task.is_recurring = is_recurring in ("on", "true", "1")
-    task.recurrence_type = RecurrenceType(recurrence_type) if recurrence_type else None
-    task.recurrence_interval_days = (
-        int(recurrence_interval_days) if recurrence_interval_days else None
+    update_task(
+        session,
+        task_id,
+        title=title,
+        notes=notes if notes.strip() else None,
+        status=TaskStatus(status),
+        due_date=date.fromisoformat(due_date) if due_date else None,
+        is_recurring=is_recurring in ("on", "true", "1"),
+        recurrence_type=RecurrenceType(recurrence_type) if recurrence_type else None,
+        recurrence_interval_days=(
+            int(recurrence_interval_days) if recurrence_interval_days else None
+        ),
+        project_id=int(project_id) if project_id else None,
     )
-    task.project_id = int(project_id) if project_id else None
-    task.updated_at = datetime.now(UTC)
-
-    session.add(task)
-    session.commit()
 
     if action == "close":
         safe_back = back_url

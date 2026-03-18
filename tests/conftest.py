@@ -7,12 +7,14 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
+from app.config import get_settings
 from app.db import get_engine, init_db
 from app.main import create_app
 
 
 @pytest.fixture
 def sqlite_database_url(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
+    get_settings.cache_clear()
     database_url = f"sqlite:///{tmp_path / 'test.db'}"
     monkeypatch.setenv("DATABASE_URL", database_url)
     return database_url
