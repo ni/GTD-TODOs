@@ -40,10 +40,13 @@ def list_projects(
     session: Session,
     *,
     include_archived: bool = False,
+    include_completed: bool = False,
 ) -> list[Project]:
     stmt = select(Project)
     if not include_archived:
         stmt = stmt.where(Project.archived_at.is_(None))  # type: ignore[union-attr]
+    if not include_completed:
+        stmt = stmt.where(Project.completed_at.is_(None))  # type: ignore[union-attr]
     stmt = stmt.order_by(Project.name)
     return session.exec(stmt).all()  # type: ignore[return-value]
 
