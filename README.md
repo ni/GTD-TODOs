@@ -105,7 +105,6 @@ docker build .
 - `tests/`: test coverage for app import, page rendering, health checks, SQLite initialization, GTD workflow routes, and service-layer logic.
 - `docs/`: human-readable API and agent-integration documentation.
 - `.github/`: Copilot instructions, skills, and CI workflow.
-- `scripts/`: repository bootstrap helpers.
 
 ## Documentation
 
