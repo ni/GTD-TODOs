@@ -76,7 +76,7 @@ def test_list_projects_includes_archived_when_requested(db_session: Session) -> 
 
 
 def test_list_projects_excludes_completed(db_session: Session) -> None:
-    active = create_project(db_session, name="Active3")
+    create_project(db_session, name="Active3")
     to_complete = create_project(db_session, name="Done3")
     task = create_task(db_session, title="T", project_id=to_complete.id)
     complete_task(db_session, task.id)  # type: ignore[arg-type]
@@ -90,7 +90,7 @@ def test_list_projects_excludes_completed(db_session: Session) -> None:
 
 
 def test_list_projects_includes_completed_when_requested(db_session: Session) -> None:
-    active = create_project(db_session, name="Active4")
+    create_project(db_session, name="Active4")
     to_complete = create_project(db_session, name="Done4")
     task = create_task(db_session, title="T2", project_id=to_complete.id)
     complete_task(db_session, task.id)  # type: ignore[arg-type]
