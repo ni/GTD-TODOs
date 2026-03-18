@@ -75,6 +75,34 @@ def test_list_projects_includes_archived_when_requested(db_session: Session) -> 
     assert "Old2" in names
 
 
+def test_list_projects_excludes_completed(db_session: Session) -> None:
+    create_project(db_session, name="Active3")
+    to_complete = create_project(db_session, name="Done3")
+    task = create_task(db_session, title="T", project_id=to_complete.id)
+    complete_task(db_session, task.id)  # type: ignore[arg-type]
+    complete_project(db_session, to_complete.id)  # type: ignore[arg-type]
+
+    projects = list_projects(db_session)
+
+    names = [p.name for p in projects]
+    assert "Active3" in names
+    assert "Done3" not in names
+
+
+def test_list_projects_includes_completed_when_requested(db_session: Session) -> None:
+    create_project(db_session, name="Active4")
+    to_complete = create_project(db_session, name="Done4")
+    task = create_task(db_session, title="T2", project_id=to_complete.id)
+    complete_task(db_session, task.id)  # type: ignore[arg-type]
+    complete_project(db_session, to_complete.id)  # type: ignore[arg-type]
+
+    projects = list_projects(db_session, include_completed=True)
+
+    names = [p.name for p in projects]
+    assert "Active4" in names
+    assert "Done4" in names
+
+
 def test_update_project(db_session: Session) -> None:
     project = create_project(db_session, name="Original")
     original_updated_at = project.updated_at

@@ -48,7 +48,7 @@ def home() -> RedirectResponse:
 @router.get("/inbox", response_class=HTMLResponse)
 def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     tasks = list_tasks(session, status=TaskStatus.INBOX)
-    projects_map = {p.id: p.name for p in list_projects(session)}
+    projects_map = {p.id: p.name for p in list_projects(session, include_completed=True)}
     ctx = _base_context(session)
     ctx.update({"tasks": tasks, "projects": projects_map})
     return templates.TemplateResponse(request, "inbox.html", ctx)
@@ -58,7 +58,7 @@ def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 def today(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     overdue = list_tasks_overdue(session)
     due_today = list_tasks_due_today(session)
-    projects_map = {p.id: p.name for p in list_projects(session)}
+    projects_map = {p.id: p.name for p in list_projects(session, include_completed=True)}
     ctx = _base_context(session)
     ctx.update({"overdue": overdue, "due_today": due_today, "projects": projects_map})
     return templates.TemplateResponse(request, "today.html", ctx)
@@ -68,7 +68,7 @@ def today(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 def projects_list(
     request: Request, session: Session = Depends(get_session)
 ) -> HTMLResponse:
-    projects = list_projects(session)
+    projects = list_projects(session, include_completed=True)
     counts = {p.id: get_project_task_counts(session, p.id) for p in projects}  # type: ignore[arg-type]
     ctx = _base_context(session)
     ctx.update({"projects": projects, "counts": counts, "today": date.today()})
@@ -215,7 +215,7 @@ def all_tasks(
     is_recurring: str = "",
     session: Session = Depends(get_session),
 ) -> HTMLResponse:
-    projects_list_all = list_projects(session)
+    projects_list_all = list_projects(session, include_completed=True)
     projects_map = {p.id: p.name for p in projects_list_all}
 
     # Parse filters
