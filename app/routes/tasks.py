@@ -74,6 +74,8 @@ def edit_task_page(
 
     settings = get_settings()
     projects = list_projects(session)
+    # Build a map of project_id -> due_date for client-side validation
+    project_due_dates = {p.id: str(p.due_date) if p.due_date else "" for p in projects}
     back_url = _redirect_back(request)
     return templates.TemplateResponse(
         request,
@@ -82,6 +84,7 @@ def edit_task_page(
             "app_name": settings.app_name,
             "task": task,
             "projects": projects,
+            "project_due_dates": project_due_dates,
             "statuses": STATUS_OPTIONS,
             "recurrence_types": RECURRENCE_OPTIONS,
             "back_url": back_url,

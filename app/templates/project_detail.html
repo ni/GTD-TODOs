@@ -15,9 +15,23 @@
       </button>
     </form>
     {% endif %}
+    <a href="/projects/{{ project.id }}/edit" class="btn-edit">Edit</a>
   </div>
+
+  {% if project.due_date %}
+  <p class="project-due-date{% if today and project.due_date < today %} project-due-date-overdue{% endif %}">
+    Due: {{ project.due_date }}
+  </p>
+  {% endif %}
+
   {% if project.description %}
   <p class="project-description">{{ project.description }}</p>
+  {% endif %}
+
+  {% if project.notes %}
+  <div class="project-notes">
+    <div class="rendered-markdown">{{ render_markdown(project.notes) | safe }}</div>
+  </div>
   {% endif %}
 
   <form class="quick-add" action="/tasks" method="post">

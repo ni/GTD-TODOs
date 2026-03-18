@@ -652,6 +652,38 @@ h1 {
   margin: -0.75rem 0 1.5rem;
 }
 
+/* --- Project notes & due date --- */
+
+.project-due-date {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: -0.75rem 0 1rem;
+}
+
+.project-due-date-overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.project-notes {
+  margin-bottom: 1.5rem;
+}
+
+.project-notes .rendered-markdown {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  line-height: 1.65;
+}
+
+.btn-primary:disabled,
+.btn-primary.btn-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* --- Project completion --- */
 
 .project-heading {

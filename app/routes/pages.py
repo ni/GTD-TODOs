@@ -15,6 +15,7 @@ from app.services.project_service import (
     get_project,
     get_project_task_counts,
     list_projects,
+    update_project,
 )
 from app.services.task_service import (
     get_nav_counts,
@@ -83,10 +84,13 @@ def today(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 def projects_list(
     request: Request, session: Session = Depends(get_session)
 ) -> HTMLResponse:
+    from datetime import date as _date
+
     settings = get_settings()
     projects = list_projects(session)
     counts = {p.id: get_project_task_counts(session, p.id) for p in projects}  # type: ignore[arg-type]
     nav_counts = get_nav_counts(session)
+    today = _date.today()
     return templates.TemplateResponse(
         request,
         "projects_list.html",
@@ -95,6 +99,7 @@ def projects_list(
             "projects": projects,
             "counts": counts,
             "nav_counts": nav_counts,
+            "today": today,
         },
     )
 
@@ -130,6 +135,8 @@ def project_detail(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    from datetime import date as _date
+
     settings = get_settings()
     tasks = list_tasks(session, project_id=project_id)
 
@@ -145,6 +152,7 @@ def project_detail(
 
     nav_counts = get_nav_counts(session)
     completable = can_complete_project(session, project_id)
+    today = _date.today()
     return templates.TemplateResponse(
         request,
         "project_detail.html",
@@ -155,8 +163,66 @@ def project_detail(
             "status_labels": STATUS_LABELS,
             "nav_counts": nav_counts,
             "can_complete": completable,
+            "today": today,
         },
     )
+
+
+@router.get("/projects/{project_id}/edit", response_class=HTMLResponse)
+def edit_project_page(
+    request: Request,
+    project_id: int,
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    project = get_project(session, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    settings = get_settings()
+    nav_counts = get_nav_counts(session)
+    return templates.TemplateResponse(
+        request,
+        "project_edit.html",
+        {
+            "app_name": settings.app_name,
+            "project": project,
+            "nav_counts": nav_counts,
+        },
+    )
+
+
+@router.post("/projects/{project_id}/update")
+def update_project_route(
+    project_id: int,
+    name: str = Form(...),
+    description: str = Form(""),
+    notes: str = Form(""),
+    due_date: str = Form(""),
+    action: str = Form("save"),
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    from datetime import date as _date
+
+    project = get_project(session, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not name.strip():
+        return RedirectResponse(f"/projects/{project_id}/edit", status_code=303)
+
+    parsed_due = _date.fromisoformat(due_date) if due_date else None
+    update_project(
+        session,
+        project_id,
+        name=name.strip(),
+        description=description.strip() if description.strip() else None,
+        notes=notes.strip() if notes.strip() else None,
+        due_date=parsed_due,
+    )
+
+    if action == "close":
+        return RedirectResponse(f"/projects/{project_id}", status_code=303)
+    return RedirectResponse(f"/projects/{project_id}/edit", status_code=303)
 
 
 @router.get("/tasks", response_class=HTMLResponse)
