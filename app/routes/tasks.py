@@ -1,7 +1,7 @@
 """Task mutation and edit routes."""
 
 from datetime import date
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -69,7 +69,8 @@ def edit_task_page(
     projects = list_projects(session)
     # Build a map of project_id -> due_date for client-side validation
     project_due_dates = {p.id: str(p.due_date) if p.due_date else "" for p in projects}
-    back_url = _redirect_back(request)
+    # Prefer explicit query param (preserved across Save round-trips) over Referer
+    back_url = request.query_params.get("back_url") or _redirect_back(request)
     return templates.TemplateResponse(
         request,
         "task_edit.html",
@@ -128,7 +129,13 @@ def update_task_route(
         if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
             safe_back = "/inbox"
         return RedirectResponse(safe_back, status_code=303)
-    return RedirectResponse(f"/tasks/{task_id}/edit", status_code=303)
+    # Preserve back_url through the Save redirect so it survives round-trips
+    safe_back = back_url
+    if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
+        safe_back = "/inbox"
+    return RedirectResponse(
+        f"/tasks/{task_id}/edit?back_url={quote(safe_back)}", status_code=303
+    )
 
 
 @router.post("/tasks/{task_id}/complete")
