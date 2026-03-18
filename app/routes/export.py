@@ -129,4 +129,7 @@ def _task_csv_headers() -> list[str]:
 
 
 def _project_csv_headers() -> list[str]:
-    return ["id", "name", "description", "created_at", "updated_at", "archived_at"]
+    return [
+        "id", "name", "description", "notes", "due_date",
+        "created_at", "updated_at", "archived_at", "completed_at",
+    ]

@@ -3,11 +3,12 @@
 from collections.abc import Generator
 from pathlib import Path
 
+from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine, text
 
 from app.config import get_settings
 
-_engines: dict[str, object] = {}
+_engines: dict[str, Engine] = {}
 
 
 def _prepare_sqlite_path(database_url: str) -> None:
@@ -19,7 +20,7 @@ def _prepare_sqlite_path(database_url: str) -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def get_engine(database_url: str | None = None):
+def get_engine(database_url: str | None = None) -> Engine:
     settings = get_settings()
     resolved_url = database_url or settings.database_url
     if resolved_url not in _engines:
@@ -30,7 +31,13 @@ def get_engine(database_url: str | None = None):
 
 
 def _migrate_schema(database_url: str) -> None:
-    """Apply lightweight schema migrations for new columns."""
+    """Apply lightweight schema migrations for pre-existing databases.
+
+    SQLModel's create_all does not ALTER existing tables when new columns are
+    added to a model.  This function back-fills columns that were introduced
+    after the initial schema so that databases created by earlier versions
+    continue to work.  It is safe to run repeatedly (idempotent).
+    """
     engine = get_engine(database_url)
     with engine.connect() as conn:
         # Check if the projects table exists before trying to migrate it

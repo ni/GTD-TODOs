@@ -1,5 +1,7 @@
 """Page routes."""
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import Session
@@ -27,14 +29,14 @@ from app.services.task_service import (
 
 router = APIRouter(tags=["pages"])
 
-STATUS_LABELS: dict[str, str] = {
-    "inbox": "Inbox",
-    "next_action": "Next Action",
-    "waiting_for": "Waiting For",
-    "scheduled": "Scheduled",
-    "someday_maybe": "Someday / Maybe",
-    "done": "Done",
-}
+STATUS_LABELS: dict[str, str] = {s.value: s.label for s in TaskStatus}
+
+
+def _base_context(session: Session) -> dict[str, object]:
+    return {
+        "app_name": get_settings().app_name,
+        "nav_counts": get_nav_counts(session),
+    }
 
 
 @router.get("/")
@@ -44,64 +46,32 @@ def home() -> RedirectResponse:
 
 @router.get("/inbox", response_class=HTMLResponse)
 def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
-    settings = get_settings()
     tasks = list_tasks(session, status=TaskStatus.INBOX)
     projects_map = {p.id: p.name for p in list_projects(session)}
-    nav_counts = get_nav_counts(session)
-    return templates.TemplateResponse(
-        request,
-        "inbox.html",
-        {
-            "app_name": settings.app_name,
-            "tasks": tasks,
-            "projects": projects_map,
-            "nav_counts": nav_counts,
-        },
-    )
+    ctx = _base_context(session)
+    ctx.update({"tasks": tasks, "projects": projects_map})
+    return templates.TemplateResponse(request, "inbox.html", ctx)
 
 
 @router.get("/today", response_class=HTMLResponse)
 def today(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
-    settings = get_settings()
     overdue = list_tasks_overdue(session)
     due_today = list_tasks_due_today(session)
     projects_map = {p.id: p.name for p in list_projects(session)}
-    nav_counts = get_nav_counts(session)
-    return templates.TemplateResponse(
-        request,
-        "today.html",
-        {
-            "app_name": settings.app_name,
-            "overdue": overdue,
-            "due_today": due_today,
-            "projects": projects_map,
-            "nav_counts": nav_counts,
-        },
-    )
+    ctx = _base_context(session)
+    ctx.update({"overdue": overdue, "due_today": due_today, "projects": projects_map})
+    return templates.TemplateResponse(request, "today.html", ctx)
 
 
 @router.get("/projects", response_class=HTMLResponse)
 def projects_list(
     request: Request, session: Session = Depends(get_session)
 ) -> HTMLResponse:
-    from datetime import date as _date
-
-    settings = get_settings()
     projects = list_projects(session)
     counts = {p.id: get_project_task_counts(session, p.id) for p in projects}  # type: ignore[arg-type]
-    nav_counts = get_nav_counts(session)
-    today = _date.today()
-    return templates.TemplateResponse(
-        request,
-        "projects_list.html",
-        {
-            "app_name": settings.app_name,
-            "projects": projects,
-            "counts": counts,
-            "nav_counts": nav_counts,
-            "today": today,
-        },
-    )
+    ctx = _base_context(session)
+    ctx.update({"projects": projects, "counts": counts, "today": date.today()})
+    return templates.TemplateResponse(request, "projects_list.html", ctx)
 
 
 @router.post("/projects")
@@ -119,9 +89,12 @@ def complete_project_route(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
-    project = complete_project(session, project_id)
+    project = get_project(session, project_id)
     if project is None:
-        raise HTTPException(status_code=404, detail="Project not found or has open tasks")
+        raise HTTPException(status_code=404, detail="Project not found")
+    completed = complete_project(session, project_id)
+    if completed is None:
+        raise HTTPException(status_code=409, detail="Project has open tasks")
     return RedirectResponse(f"/projects/{project_id}", status_code=303)
 
 
@@ -135,9 +108,6 @@ def project_detail(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    from datetime import date as _date
-
-    settings = get_settings()
     tasks = list_tasks(session, project_id=project_id)
 
     # Group tasks by status, ordered to match the STATUS_LABELS dropdown
@@ -150,22 +120,16 @@ def project_detail(
     # Drop empty groups
     grouped = {k: v for k, v in grouped.items() if v}
 
-    nav_counts = get_nav_counts(session)
     completable = can_complete_project(session, project_id)
-    today = _date.today()
-    return templates.TemplateResponse(
-        request,
-        "project_detail.html",
-        {
-            "app_name": settings.app_name,
-            "project": project,
-            "grouped_tasks": grouped,
-            "status_labels": STATUS_LABELS,
-            "nav_counts": nav_counts,
-            "can_complete": completable,
-            "today": today,
-        },
-    )
+    ctx = _base_context(session)
+    ctx.update({
+        "project": project,
+        "grouped_tasks": grouped,
+        "status_labels": STATUS_LABELS,
+        "can_complete": completable,
+        "today": date.today(),
+    })
+    return templates.TemplateResponse(request, "project_detail.html", ctx)
 
 
 @router.get("/projects/{project_id}/edit", response_class=HTMLResponse)
@@ -178,17 +142,9 @@ def edit_project_page(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    settings = get_settings()
-    nav_counts = get_nav_counts(session)
-    return templates.TemplateResponse(
-        request,
-        "project_edit.html",
-        {
-            "app_name": settings.app_name,
-            "project": project,
-            "nav_counts": nav_counts,
-        },
-    )
+    ctx = _base_context(session)
+    ctx.update({"project": project})
+    return templates.TemplateResponse(request, "project_edit.html", ctx)
 
 
 @router.post("/projects/{project_id}/update")
@@ -201,8 +157,6 @@ def update_project_route(
     action: str = Form("save"),
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
-    from datetime import date as _date
-
     project = get_project(session, project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -210,7 +164,7 @@ def update_project_route(
     if not name.strip():
         return RedirectResponse(f"/projects/{project_id}/edit", status_code=303)
 
-    parsed_due = _date.fromisoformat(due_date) if due_date else None
+    parsed_due = date.fromisoformat(due_date) if due_date else None
     update_project(
         session,
         project_id,
@@ -235,11 +189,6 @@ def all_tasks(
     is_recurring: str = "",
     session: Session = Depends(get_session),
 ) -> HTMLResponse:
-    from datetime import date as _date
-
-    from app.models import TaskStatus as _TS
-
-    settings = get_settings()
     projects_list_all = list_projects(session)
     projects_map = {p.id: p.name for p in projects_list_all}
 
@@ -251,7 +200,7 @@ def all_tasks(
     else:
         try:
             if status:
-                status_filter = _TS(status)
+                status_filter = TaskStatus(status)
         except ValueError:
             pass
 
@@ -288,25 +237,18 @@ def all_tasks(
         is_recurring=recurring_filter,
     )
 
-    today = _date.today()
-    nav_counts = get_nav_counts(session)
-
-    return templates.TemplateResponse(
-        request,
-        "tasks_list.html",
-        {
-            "app_name": settings.app_name,
-            "tasks": tasks,
-            "projects": projects_map,
-            "projects_list": projects_list_all,
-            "status_labels": STATUS_LABELS,
-            "today": today,
-            "nav_counts": nav_counts,
-            # Current filter values for the form
-            "f_status": status,
-            "f_project_id": project_id,
-            "f_q": q,
-            "f_has_due_date": has_due_date,
-            "f_is_recurring": is_recurring,
-        },
-    )
+    ctx = _base_context(session)
+    ctx.update({
+        "tasks": tasks,
+        "projects": projects_map,
+        "projects_list": projects_list_all,
+        "status_labels": STATUS_LABELS,
+        "today": date.today(),
+        # Current filter values for the form
+        "f_status": status,
+        "f_project_id": project_id,
+        "f_q": q,
+        "f_has_due_date": has_due_date,
+        "f_is_recurring": is_recurring,
+    })
+    return templates.TemplateResponse(request, "tasks_list.html", ctx)

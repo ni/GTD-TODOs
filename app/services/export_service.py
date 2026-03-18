@@ -16,14 +16,14 @@ def export_tasks(
     stmt = select(Task).order_by(Task.id)  # type: ignore[arg-type]
     if status is not None:
         stmt = stmt.where(Task.status == status)
-    tasks = list(session.exec(stmt).all())
+    tasks = session.exec(stmt).all()
     return [_task_to_dict(t) for t in tasks]
 
 
 def export_projects(session: Session) -> list[dict[str, object]]:
     """Return all projects as plain dicts for export."""
     stmt = select(Project).order_by(Project.id)  # type: ignore[arg-type]
-    projects = list(session.exec(stmt).all())
+    projects = session.exec(stmt).all()
     return [_project_to_dict(p) for p in projects]
 
 
@@ -50,7 +50,10 @@ def _project_to_dict(project: Project) -> dict[str, object]:
         "id": project.id,
         "name": project.name,
         "description": project.description or "",
+        "notes": project.notes or "",
+        "due_date": project.due_date.isoformat() if project.due_date else "",
         "created_at": project.created_at.isoformat() if project.created_at else "",
         "updated_at": project.updated_at.isoformat() if project.updated_at else "",
         "archived_at": project.archived_at.isoformat() if project.archived_at else "",
+        "completed_at": project.completed_at.isoformat() if project.completed_at else "",
     }
