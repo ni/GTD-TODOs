@@ -1,6 +1,7 @@
 """Page routes."""
 
 from datetime import date
+from urllib.parse import quote, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -132,6 +133,20 @@ def project_detail(
     return templates.TemplateResponse(request, "project_detail.html", ctx)
 
 
+# Paths that are safe redirect targets from the referer header.
+_SAFE_REFERER_PREFIXES = ("/inbox", "/today", "/projects", "/tasks")
+
+
+def _redirect_back(request: Request, fallback: str = "/projects") -> str:
+    """Extract a safe redirect path from the Referer header."""
+    referer = request.headers.get("referer", "")
+    if referer:
+        path = urlparse(referer).path
+        if any(path.startswith(prefix) for prefix in _SAFE_REFERER_PREFIXES):
+            return path
+    return fallback
+
+
 @router.get("/projects/{project_id}/edit", response_class=HTMLResponse)
 def edit_project_page(
     request: Request,
@@ -142,8 +157,9 @@ def edit_project_page(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    back_url = request.query_params.get("back_url") or _redirect_back(request)
     ctx = _base_context(session)
-    ctx.update({"project": project})
+    ctx.update({"project": project, "back_url": back_url})
     return templates.TemplateResponse(request, "project_edit.html", ctx)
 
 
@@ -155,6 +171,7 @@ def update_project_route(
     notes: str = Form(""),
     due_date: str = Form(""),
     action: str = Form("save"),
+    back_url: str = Form("/projects"),
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
     project = get_project(session, project_id)
@@ -175,8 +192,17 @@ def update_project_route(
     )
 
     if action == "close":
-        return RedirectResponse(f"/projects/{project_id}", status_code=303)
-    return RedirectResponse(f"/projects/{project_id}/edit", status_code=303)
+        safe_back = back_url
+        if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
+            safe_back = f"/projects/{project_id}"
+        return RedirectResponse(safe_back, status_code=303)
+    # Preserve back_url through the Save redirect so it survives round-trips
+    safe_back = back_url
+    if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
+        safe_back = f"/projects/{project_id}"
+    return RedirectResponse(
+        f"/projects/{project_id}/edit?back_url={quote(safe_back)}", status_code=303
+    )
 
 
 @router.get("/tasks", response_class=HTMLResponse)

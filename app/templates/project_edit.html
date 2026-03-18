@@ -7,6 +7,7 @@
   <h1>Edit Project</h1>
 
   <form action="/projects/{{ project.id }}/update" method="post" class="edit-form">
+    <input type="hidden" name="back_url" value="{{ back_url }}">
     <div class="form-group">
       <label for="name">Name</label>
       <input type="text" id="name" name="name" value="{{ project.name }}" required>
@@ -30,7 +31,7 @@
     <div class="form-actions">
       <button type="submit" name="action" value="save" class="btn-primary">Save</button>
       <button type="submit" name="action" value="close" class="btn-primary">Save and Close</button>
-      <a href="/projects/{{ project.id }}" class="btn-secondary">Cancel</a>
+      <a href="{{ back_url }}" class="btn-secondary">Cancel</a>
     </div>
   </form>
 
