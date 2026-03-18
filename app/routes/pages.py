@@ -133,11 +133,15 @@ def project_detail(
     settings = get_settings()
     tasks = list_tasks(session, project_id=project_id)
 
-    # Group tasks by status
+    # Group tasks by status, ordered to match the STATUS_LABELS dropdown
     grouped: dict[str, list] = {}
+    for label in STATUS_LABELS.values():
+        grouped[label] = []
     for task in tasks:
         label = STATUS_LABELS.get(task.status.value, task.status.value)
         grouped.setdefault(label, []).append(task)
+    # Drop empty groups
+    grouped = {k: v for k, v in grouped.items() if v}
 
     nav_counts = get_nav_counts(session)
     completable = can_complete_project(session, project_id)
