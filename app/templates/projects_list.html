@@ -25,6 +25,9 @@
         {% if project.completed_at %}
         <span class="badge badge-completed">Completed</span>
         {% else %}
+        {% if project.due_date %}
+        <span class="badge {% if today and project.due_date < today %}badge-overdue{% else %}badge-due{% endif %}">{{ project.due_date }}</span>
+        {% endif %}
         {% set c = counts.get(project.id, {"open": 0, "due_today": 0}) %}
         <span class="badge badge-count">{{ c.open }} open</span>
         {% if c.due_today > 0 %}

@@ -6,15 +6,26 @@ from sqlmodel import Session, func, select
 
 from app.models import Project, Task, TaskStatus
 
+_UNSET = object()
+
 
 def create_project(
     session: Session,
     *,
     name: str,
     description: str | None = None,
+    notes: str | None = None,
+    due_date: date | None = None,
 ) -> Project:
     now = datetime.now(UTC)
-    project = Project(name=name, description=description, created_at=now, updated_at=now)
+    project = Project(
+        name=name,
+        description=description,
+        notes=notes,
+        due_date=due_date,
+        created_at=now,
+        updated_at=now,
+    )
     session.add(project)
     session.commit()
     session.refresh(project)
@@ -42,15 +53,21 @@ def update_project(
     project_id: int,
     *,
     name: str | None = None,
-    description: str | None = None,
+    description: object = _UNSET,
+    notes: object = _UNSET,
+    due_date: object = _UNSET,
 ) -> Project | None:
     project = session.get(Project, project_id)
     if project is None:
         return None
     if name is not None:
         project.name = name
-    if description is not None:
-        project.description = description
+    if description is not _UNSET:
+        project.description = description  # type: ignore[assignment]
+    if notes is not _UNSET:
+        project.notes = notes  # type: ignore[assignment]
+    if due_date is not _UNSET:
+        project.due_date = due_date  # type: ignore[assignment]
     project.updated_at = datetime.now(UTC)
     session.add(project)
     session.commit()
@@ -116,3 +133,16 @@ def complete_project(session: Session, project_id: int) -> Project | None:
     session.commit()
     session.refresh(project)
     return project
+
+
+def count_overdue_projects(session: Session) -> int:
+    """Count non-archived, non-completed projects whose due_date is past."""
+    today = date.today()
+    count = session.exec(
+        select(func.count())
+        .select_from(Project)
+        .where(Project.due_date < today)  # type: ignore[operator]
+        .where(Project.archived_at.is_(None))  # type: ignore[union-attr]
+        .where(Project.completed_at.is_(None))  # type: ignore[union-attr]
+    ).one()
+    return int(count)

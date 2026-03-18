@@ -44,6 +44,13 @@ def _migrate_schema(database_url: str) -> None:
         if "completed_at" not in columns:
             conn.execute(text("ALTER TABLE projects ADD COLUMN completed_at DATETIME"))
             conn.commit()
+        # Add notes and due_date columns if missing
+        if "notes" not in columns:
+            conn.execute(text("ALTER TABLE projects ADD COLUMN notes TEXT"))
+            conn.commit()
+        if "due_date" not in columns:
+            conn.execute(text("ALTER TABLE projects ADD COLUMN due_date DATE"))
+            conn.commit()
 
 
 def init_db(database_url: str | None = None) -> None:

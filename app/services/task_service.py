@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime, timedelta
 from sqlmodel import Session, select
 
 from app.models import RecurrenceType, Task, TaskStatus
+from app.services.project_service import count_overdue_projects
 
 
 def create_task(
@@ -246,6 +247,7 @@ def get_nav_counts(session: Session) -> dict[str, int]:
         "overdue": overdue_count,
         "due_today": due_today_count,
         "all_tasks": all_not_done,
+        "overdue_projects": count_overdue_projects(session),
     }
 
 
