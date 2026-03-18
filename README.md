@@ -6,19 +6,17 @@ GTD TODOs is a local-first task application for a single laptop user. The MVP is
 
 ## Local Python Setup
 
-1. Create and activate a Python 3.12 environment.
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) (e.g. `brew install uv`).
 2. Install the project with development dependencies.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
+uv sync
 ```
 
 3. Run the app locally.
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 The default database URL is `sqlite:////data/todo.db`. For local development outside Docker, set `DATABASE_URL` to a writable path such as `sqlite:///./data/todo.db`.
@@ -78,19 +76,19 @@ See [docs/api.md](docs/api.md) for full export endpoint documentation.
 Run tests:
 
 ```bash
-pytest
+uv run pytest
 ```
 
 Run lint checks:
 
 ```bash
-ruff check .
+uv run ruff check .
 ```
 
 Run type checks:
 
 ```bash
-mypy app
+uv run mypy app
 ```
 
 Build the container image:
