@@ -21,11 +21,9 @@
         </form>
         <span class="task-title">{{ task.title }}</span>
         <div class="task-meta">
-          {% if task.due_date %}
-          <span class="badge badge-due">{{ task.due_date }}</span>
-          {% endif %}
-          {% if task.project_id and projects.get(task.project_id) %}
-          <span class="badge badge-project">{{ projects[task.project_id] }}</span>
+          {% include '_task_inline_selectors.html' %}
+          {% if task.is_recurring %}
+          <span class="badge badge-recurring">&#x1f501;</span>
           {% endif %}
           <a href="/tasks/{{ task.id }}/edit" class="btn-edit">Edit</a>
         </div>

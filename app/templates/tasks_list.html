@@ -74,13 +74,7 @@
         {% endif %}
         <span class="task-title">{{ task.title }}</span>
         <div class="task-meta">
-          <span class="badge badge-status badge-status-{{ task.status.value }}">{{ status_labels.get(task.status.value, task.status.value) }}</span>
-          {% if task.due_date %}
-          <span class="badge {% if is_overdue %}badge-overdue{% elif is_due_today %}badge-due-today{% else %}badge-due{% endif %}">{{ task.due_date }}</span>
-          {% endif %}
-          {% if task.project_id and projects.get(task.project_id) %}
-          <span class="badge badge-project">{{ projects[task.project_id] }}</span>
-          {% endif %}
+          {% include '_task_inline_selectors.html' %}
           {% if task.is_recurring %}
           <span class="badge badge-recurring">&#x1f501;</span>
           {% endif %}

@@ -138,6 +138,37 @@ def update_task_route(
     )
 
 
+@router.post("/tasks/{task_id}/quick-update")
+def quick_update_task_route(
+    request: Request,
+    task_id: int,
+    field: str = Form(...),
+    status: str = Form(""),
+    due_date: str = Form(""),
+    project_id: str = Form(""),
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    task = session.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    kwargs: dict = {}
+    if field == "status" and status:
+        try:
+            kwargs["status"] = TaskStatus(status)
+        except ValueError:
+            pass  # ignore invalid status values
+    elif field == "due_date":
+        kwargs["due_date"] = date.fromisoformat(due_date) if due_date else None
+    elif field == "project_id":
+        kwargs["project_id"] = int(project_id) if project_id else None
+
+    if kwargs:
+        update_task(session, task_id, **kwargs)
+
+    return RedirectResponse(_redirect_back(request), status_code=303)
+
+
 @router.post("/tasks/{task_id}/complete")
 def complete_task_route(
     request: Request,
