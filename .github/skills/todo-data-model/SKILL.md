@@ -15,7 +15,10 @@ Use this skill when reasoning about task and project semantics in GTD TODOs.
 
 - Projects group related tasks.
 - Tasks may exist without a project.
-- Archived projects remain outside the active browsing flow.
+- Project fields: `name`, `description`, `notes` (Markdown), `due_date`, `created_at`, `updated_at`, `archived_at`, `completed_at`.
+- Projects can be completed when all their tasks are done (`completed_at` is set).
+- Archived projects (`archived_at` set) are excluded from active browsing. Archive exists in the service layer but is not yet exposed via a route.
+- The active project list excludes both archived and completed projects.
 
 ## Due Date Semantics
 

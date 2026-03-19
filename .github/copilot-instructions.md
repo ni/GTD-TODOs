@@ -58,6 +58,14 @@ docker compose up --build
 - Domain rule: recurring tasks remain single persistent task records whose `due_date` advances on completion.
 - Notes rule: task notes are stored as raw Markdown and rendered as safe HTML.
 
+## Skills
+
+Before starting work, read the relevant skill file from `.github/skills/`:
+
+- **GTD Daily Report** (`.github/skills/gtd-daily-report/SKILL.md`): When the user asks for a daily report, focus plan, tomorrow's priorities, or a GTD review.
+- **TODO API** (`.github/skills/todo-api/SKILL.md`): When interacting with the running app over HTTP — routes, endpoints, filtering, exports, and error handling.
+- **TODO Data Model** (`.github/skills/todo-data-model/SKILL.md`): When reasoning about task/project semantics — GTD statuses, due dates, recurrence, and notes.
+
 ## Documentation Expectations
 
 - Keep `README.md`, `docs/`, and `.github/skills/` synchronized with behavior.
