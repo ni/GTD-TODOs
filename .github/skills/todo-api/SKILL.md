@@ -19,18 +19,27 @@ Use this skill when interacting with the running GTD TODOs application over HTTP
 - `GET /` redirects to `/inbox`.
 - `GET /inbox` shows inbox tasks with a quick-add form.
 - `GET /today` shows overdue tasks and tasks due today (excludes done tasks and tasks without due dates).
-- `GET /projects` lists non-archived projects with open and due-today task counts.
+- `GET /projects` lists non-archived, non-completed projects with open and due-today task counts.
 - `GET /projects/{project_id}` shows project details with tasks grouped by GTD status.
+- `GET /projects/{project_id}/edit` shows the project edit form (name, description, notes, due_date).
 - `GET /tasks` shows all tasks with filtering and search support.
-- `GET /tasks/{task_id}/edit` shows the task edit form.
+- `GET /tasks/{task_id}/edit` shows the task edit form. Accepts optional `back_url` query parameter to preserve navigation context.
 
 ## Mutation Routes
 
+### Tasks
+
 - `POST /tasks` creates a task (form fields: `title`, optional `project_id`). Redirects back to the referring page.
-- `POST /tasks/{task_id}/update` updates a task from the edit form. Redirects back to the referring page.
+- `POST /tasks/{task_id}/update` updates a task from the edit form. If `action=close` is passed, redirects back to the referring page (via `back_url`). Otherwise redirects back to the edit form.
+- `POST /tasks/{task_id}/quick-update` inline single-field update (form fields: `field` plus the field value). Used for HTMX partial updates of `status`, `due_date`, or `project_id`. Redirects back to the referring page.
 - `POST /tasks/{task_id}/complete` completes a task. Redirects back to the referring page.
 - `POST /tasks/{task_id}/reopen` reopens a task to inbox. Redirects back to the referring page.
+
+### Projects
+
 - `POST /projects` creates a project (form field: `name`). Redirects to `/projects`.
+- `POST /projects/{project_id}/update` updates project metadata (form fields: `name`, `description`, `notes`, `due_date`, `action`, `back_url`). Redirects based on `action`.
+- `POST /projects/{project_id}/complete` marks a project complete (only when all tasks are done). Redirects back to the referring page.
 
 See `docs/api.md` for full form field specifications.
 
@@ -41,7 +50,7 @@ The `GET /tasks` page accepts query parameters:
 | Parameter | Values | Meaning |
 |---|---|---|
 | `q` | free text | Case-insensitive search across title and notes |
-| `status` | `inbox`, `next_action`, `waiting_for`, `scheduled`, `someday_maybe`, `done` | Exact status match |
+| `status` | `all_in_work` (default), `inbox`, `next_action`, `waiting_for`, `scheduled`, `someday_maybe`, `done` | Exact status match; `all_in_work` shows all non-done tasks |
 | `project_id` | integer or `none` | Filter by project; `none` for unassigned |
 | `has_due_date` | `yes`, `no` | Has or lacks a due date |
 | `is_recurring` | `yes`, `no` | Recurring or non-recurring |
@@ -58,9 +67,11 @@ Recurring tasks whose next due date is today appear automatically. Tasks without
 
 ## Project Views Behavior
 
-- The projects list shows all non-archived projects with open task counts and due-today counts.
+- The projects list shows all non-archived, non-completed projects with open task counts and due-today counts.
 - The project detail page groups tasks by GTD status (Inbox, Next Action, Waiting For, Scheduled, Someday / Maybe, Done).
 - A quick-add form on the project detail page creates tasks pre-assigned to that project.
+- The project edit page allows editing name, description, notes (Markdown), and due_date.
+- Projects can be marked complete when all their tasks are done.
 
 ## Visual Distinction
 
@@ -75,8 +86,8 @@ Tasks have CSS classes that indicate their state for any UI interaction or scrap
 
 - `GET /export/tasks.csv` — all tasks as CSV. Optional `status` query parameter.
 - `GET /export/tasks.json` — all tasks as JSON. Optional `status` query parameter.
-- `GET /export/projects.csv` — all projects as CSV.
-- `GET /export/projects.json` — all projects as JSON.
+- `GET /export/projects.csv` — all projects as CSV (includes notes, due_date, completed_at).
+- `GET /export/projects.json` — all projects as JSON (includes notes, due_date, completed_at).
 
 All export responses include a `Content-Disposition` header with a date-stamped filename.
 
