@@ -54,9 +54,9 @@
           {% endif %}
           <span class="task-title">{{ task.title }}</span>
           <div class="task-meta">
-            {% if task.due_date %}
-            <span class="badge badge-due">{{ task.due_date }}</span>
-            {% endif %}
+            {% with show_project=false %}
+            {% include '_task_inline_selectors.html' %}
+            {% endwith %}
             {% if task.is_recurring %}
             <span class="badge badge-recurring">&#x1f501;</span>
             {% endif %}

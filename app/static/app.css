@@ -539,6 +539,92 @@ h1 {
   color: var(--muted);
 }
 
+/* --- Inline quick-update selectors --- */
+
+.inline-selector {
+  display: inline-flex;
+  align-items: center;
+}
+
+.inline-select {
+  padding: 0.12rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2364748b'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.35rem center;
+  padding-right: 1.2rem;
+}
+
+.inline-select:hover {
+  border-color: var(--line);
+}
+
+.inline-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.inline-status {
+  text-transform: capitalize;
+}
+
+.inline-project {
+  background-color: rgba(15, 23, 42, 0.06);
+  color: var(--muted);
+}
+
+.inline-date {
+  padding: 0.1rem 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: "Inter", sans-serif !important;
+  cursor: pointer;
+  -webkit-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Re-show the calendar picker icon after resetting appearance */
+.inline-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.inline-date::-webkit-datetime-edit,
+.inline-date::-webkit-datetime-edit-fields-wrapper,
+.inline-date::-webkit-datetime-edit-text,
+.inline-date::-webkit-datetime-edit-month-field,
+.inline-date::-webkit-datetime-edit-day-field,
+.inline-date::-webkit-datetime-edit-year-field {
+  font-family: "Inter", sans-serif !important;
+}
+
+.inline-date:hover {
+  border-color: var(--line);
+}
+
+.inline-date:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Empty date input placeholder styling */
+.inline-date:not([value]),
+.inline-date[value=""] {
+  color: var(--muted);
+  background: rgba(15, 23, 42, 0.04);
+}
+
 /* --- Filter bar --- */
 
 .filter-bar {
@@ -807,5 +893,15 @@ h1 {
   .form-row,
   .panel-grid {
     grid-template-columns: 1fr;
+  }
+
+  .task-header {
+    flex-wrap: wrap;
+  }
+
+  .task-meta {
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 0.35rem;
   }
 }

@@ -48,9 +48,15 @@ def home() -> RedirectResponse:
 @router.get("/inbox", response_class=HTMLResponse)
 def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     tasks = list_tasks(session, status=TaskStatus.INBOX)
-    projects_map = {p.id: p.name for p in list_projects(session, include_completed=True)}
+    projects_all = list_projects(session, include_completed=True)
+    projects_map = {p.id: p.name for p in projects_all}
     ctx = _base_context(session)
-    ctx.update({"tasks": tasks, "projects": projects_map})
+    ctx.update({
+        "tasks": tasks,
+        "projects": projects_map,
+        "projects_list": projects_all,
+        "status_labels": STATUS_LABELS,
+    })
     return templates.TemplateResponse(request, "inbox.html", ctx)
 
 
@@ -58,9 +64,16 @@ def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 def today(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     overdue = list_tasks_overdue(session)
     due_today = list_tasks_due_today(session)
-    projects_map = {p.id: p.name for p in list_projects(session, include_completed=True)}
+    projects_all = list_projects(session, include_completed=True)
+    projects_map = {p.id: p.name for p in projects_all}
     ctx = _base_context(session)
-    ctx.update({"overdue": overdue, "due_today": due_today, "projects": projects_map})
+    ctx.update({
+        "overdue": overdue,
+        "due_today": due_today,
+        "projects": projects_map,
+        "projects_list": projects_all,
+        "status_labels": STATUS_LABELS,
+    })
     return templates.TemplateResponse(request, "today.html", ctx)
 
 
