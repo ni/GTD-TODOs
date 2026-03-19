@@ -11,31 +11,31 @@
 Install development dependencies:
 
 ```bash
-pip install -e .[dev]
+uv sync
 ```
 
 Run the test suite:
 
 ```bash
-pytest
+uv run pytest
 ```
 
 Run lint checks:
 
 ```bash
-ruff check .
+uv run ruff check .
 ```
 
 Run type checks:
 
 ```bash
-mypy app
+uv run mypy app
 ```
 
 Run the app locally:
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 Build the image:
