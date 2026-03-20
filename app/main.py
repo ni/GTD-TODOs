@@ -12,10 +12,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.auth import AuthMiddleware
 from app.config import get_settings
 from app.db import init_db
 from app.logging_config import configure_logging
 from app.routes import templates
+from app.routes.auth import router as auth_router
 from app.routes.export import router as export_router
 from app.routes.health import router as health_router
 from app.routes.pages import router as pages_router
@@ -94,9 +96,14 @@ def create_app() -> FastAPI:
     static_dir = Path(__file__).resolve().parent / "static"
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
     app.include_router(health_router)
+    app.include_router(auth_router)
     app.include_router(pages_router)
     app.include_router(tasks_router)
     app.include_router(export_router)
+
+    # Auth middleware — must be added after routes so it wraps them.
+    app.add_middleware(AuthMiddleware)
+
     return app
 
 

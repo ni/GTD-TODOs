@@ -905,3 +905,117 @@ h1 {
     margin-top: 0.35rem;
   }
 }
+
+/* --- Auth Pages --- */
+
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.auth-card {
+  width: min(440px, 100%);
+  padding: 3rem 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.04),
+    0 8px 40px rgba(15, 23, 42, 0.08),
+    0 30px 80px rgba(15, 23, 42, 0.06);
+  text-align: center;
+}
+
+.auth-logo {
+  margin-bottom: 1.5rem;
+}
+
+.auth-logo img {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.25));
+}
+
+.auth-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-subtitle {
+  margin: 0 0 2rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.auth-btn:hover {
+  background: #1d4ed8;
+}
+
+.auth-btn:active {
+  transform: scale(0.98);
+}
+
+.auth-btn-icon {
+  flex-shrink: 0;
+}
+
+.auth-status {
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+  min-height: 1.4em;
+}
+
+.auth-status-error {
+  color: #b91c1c;
+}
+
+/* Nav logout */
+
+.nav-spacer {
+  flex: 1;
+}
+
+.nav-logout-btn {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.nav-logout-btn:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+}

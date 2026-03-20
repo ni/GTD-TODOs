@@ -4,26 +4,37 @@ Use this skill when the user asks for a daily report, focus plan, tomorrow's pri
 
 ## How to Generate the Report
 
-### Step 1: Determine the app port and verify it is running
-
-Read `docker-compose.yml` in the repo root to find the published host port from the `ports` mapping (the left side of the `"host:container"` pair). Fall back to port `8080` if the file is missing or unparseable.
+### Step 1: Verify the app container is running
 
 ```bash
-curl -s http://localhost:<PORT>/health
+docker ps --filter name=gtd-todos-app --format '{{.Status}}'
 ```
 
-Expect `{"status":"ok"}`. If not, tell the user to start the container first.
+If the container is not running, tell the user to start it with `docker compose up -d --build`.
 
 ### Step 2: Fetch all open tasks and projects
 
-Use the port discovered in Step 1 for all requests:
+Query the SQLite database directly inside the container. This avoids HTTP auth (WebAuthn passkeys cannot be used programmatically) and requires no config changes.
 
 ```bash
-curl -s http://localhost:<PORT>/export/tasks.json
-curl -s http://localhost:<PORT>/export/projects.json
+docker exec gtd-todos-app python -c "
+import sqlite3, json
+conn = sqlite3.connect('/data/todo.db')
+conn.row_factory = sqlite3.Row
+cur = conn.cursor()
+tasks = [dict(r) for r in cur.execute('SELECT * FROM tasks').fetchall()]
+projects = [dict(r) for r in cur.execute('SELECT * FROM projects').fetchall()]
+conn.close()
+print('===TASKS===')
+print(json.dumps(tasks, indent=2, default=str))
+print('===PROJECTS===')
+print(json.dumps(projects, indent=2, default=str))
+"
 ```
 
-These JSON export endpoints return every task/project with all fields. Filter client-side.
+This returns all tasks and projects with all fields as JSON. Filter client-side.
+
+> **Note:** Table names are `tasks` and `projects` (plural). The database path inside the container is `/data/todo.db`.
 
 ### Step 3: Determine the target date
 
