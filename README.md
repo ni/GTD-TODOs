@@ -23,6 +23,16 @@ The default database URL is `sqlite:////data/todo.db`. For local development out
 
 ## Docker Compose
 
+The compose stack requires `AUTH_SECRET_KEY`. Generate one and export it (or add it to a `.env` file next to `docker-compose.yml`):
+
+```bash
+# Generate a secret
+python -c "import secrets; print(secrets.token_hex(32))"
+
+# Export it (or add AUTH_SECRET_KEY=<value> to .env)
+export AUTH_SECRET_KEY=<value>
+```
+
 Start the app with a persistent named volume mounted at `/data`:
 
 ```bash
@@ -35,7 +45,7 @@ Stop the stack:
 docker compose down
 ```
 
-The application listens on `http://localhost:8080`.
+The container listens internally on port 8080 but is mapped to **port 8081** on the host: `http://localhost:8081`.
 
 ## Authentication
 
@@ -45,6 +55,10 @@ GTD TODOs supports single-user passkey (WebAuthn) authentication. On first visit
 
 | Variable | Purpose | Default |
 |---|---|---|
+| `APP_HOST` | Bind address | `0.0.0.0` |
+| `APP_PORT` | Listen port | `8080` |
+| `DATABASE_URL` | SQLite connection string | `sqlite:////data/todo.db` |
+| `TZ` | Container timezone | *(unset)* |
 | `AUTH_DISABLED` | Disable auth entirely (for local dev / existing tests) | `false` |
 | `AUTH_SECRET_KEY` | Secret for signing session cookies | *auto-generated* |
 | `AUTH_SESSION_MAX_AGE` | Session cookie max age in seconds | `604800` (7 days) |
@@ -72,9 +86,9 @@ The SQLite database file is stored in the Docker volume at `/data/todo.db`. Back
 # Copy the database file directly
 docker compose cp todo-app:/data/todo.db ./backup-todo.db
 
-# Or export data as CSV / JSON
-curl -o tasks.csv http://localhost:8080/export/tasks.csv
-curl -o projects.json http://localhost:8080/export/projects.json
+# Or export data as CSV / JSON (use port 8081 for Docker Compose)
+curl -o tasks.csv http://localhost:8081/export/tasks.csv
+curl -o projects.json http://localhost:8081/export/projects.json
 ```
 
 To restore, copy the backup into the running container and restart:
