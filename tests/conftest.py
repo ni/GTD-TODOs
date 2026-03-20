@@ -17,6 +17,7 @@ def sqlite_database_url(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     get_settings.cache_clear()
     database_url = f"sqlite:///{tmp_path / 'test.db'}"
     monkeypatch.setenv("DATABASE_URL", database_url)
+    monkeypatch.setenv("AUTH_DISABLED", "true")
     return database_url
 
 

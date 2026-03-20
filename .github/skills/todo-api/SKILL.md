@@ -119,6 +119,42 @@ See `docs/api.md` for full backup and restore procedures.
 - Empty titles are rejected on update (redirect back to edit form).
 - SQLite persistence uses the database URL configured in `DATABASE_URL`.
 
+## Authentication
+
+All routes except `/health`, `/auth/*`, and `/static/*` require an authenticated session when `AUTH_DISABLED` is not `true`.
+
+### Auth Routes
+
+- `GET /auth/setup` — first-run passkey registration page (only when no credentials exist).
+- `POST /auth/setup/options` — returns WebAuthn `PublicKeyCredentialCreationOptions` JSON.
+- `POST /auth/setup/verify` — verifies registration, stores credential, sets session cookie. Accepts JSON body.
+- `GET /auth/login` — login page (redirects to `/auth/setup` if no credentials exist).
+- `POST /auth/login/options` — returns WebAuthn `PublicKeyCredentialRequestOptions` JSON.
+- `POST /auth/login/verify` — verifies authentication, updates sign count, sets session cookie. Accepts JSON body.
+- `POST /auth/logout` — clears session cookie, redirects to `/auth/login`.
+
+### Session Cookie
+
+- Name: `gtd_session`
+- Signed with `itsdangerous.TimestampSigner`
+- `HttpOnly`, `SameSite=Lax`, `Secure` (when HTTPS origin)
+- Max age: `AUTH_SESSION_MAX_AGE` environment variable (default 7 days)
+
+### Auth Environment Variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AUTH_DISABLED` | `false` | Skip auth entirely |
+| `AUTH_SECRET_KEY` | auto-generated | Secret for signing cookies |
+| `AUTH_SESSION_MAX_AGE` | `604800` | Cookie max age (seconds) |
+| `WEBAUTHN_RP_ID` | `localhost` | WebAuthn Relying Party ID |
+| `WEBAUTHN_RP_NAME` | `GTD TODOs` | RP display name |
+| `WEBAUTHN_ORIGIN` | `http://localhost:8080` | Expected origin |
+
+### Bypassing Auth in Tests
+
+Set `AUTH_DISABLED=true` in the environment. The test `conftest.py` does this by default.
+
 ## Troubleshooting
 
 - If the app is unreachable, confirm the container or local process is running.

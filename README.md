@@ -37,6 +37,33 @@ docker compose down
 
 The application listens on `http://localhost:8080`.
 
+## Authentication
+
+GTD TODOs supports single-user passkey (WebAuthn) authentication. On first visit a passkey is registered, and subsequent access requires authenticating with that passkey.
+
+### Environment Variables
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `AUTH_DISABLED` | Disable auth entirely (for local dev / existing tests) | `false` |
+| `AUTH_SECRET_KEY` | Secret for signing session cookies | *auto-generated* |
+| `AUTH_SESSION_MAX_AGE` | Session cookie max age in seconds | `604800` (7 days) |
+| `WEBAUTHN_RP_ID` | WebAuthn Relying Party ID (domain) | `localhost` |
+| `WEBAUTHN_RP_NAME` | Human-readable RP name | `GTD TODOs` |
+| `WEBAUTHN_ORIGIN` | Expected origin for WebAuthn ceremonies | `http://localhost:8080` |
+
+### Disabling Auth for Local Development
+
+Set `AUTH_DISABLED=true` to skip all authentication:
+
+```bash
+AUTH_DISABLED=true uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+```
+
+### First-Run Setup
+
+When no credentials exist in the database, visiting any page redirects to `/auth/setup` where you register a passkey. After setup, future visits go through the login flow at `/auth/login`.
+
 ## Backup and Restore
 
 The SQLite database file is stored in the Docker volume at `/data/todo.db`. Back it up by copying the file or using the export endpoints:

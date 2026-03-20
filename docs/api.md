@@ -22,6 +22,25 @@
 
 - `GET /health`: Returns JSON health status.
 
+## Authentication Routes
+
+All routes except `/health`, `/auth/*`, and `/static/*` require an authenticated session when `AUTH_DISABLED` is not `true`.
+
+- `GET /auth/setup`: First-run setup page (only when no credentials exist). Redirects to `/auth/login` if credentials already exist.
+- `POST /auth/setup/options`: Returns `PublicKeyCredentialCreationOptions` JSON for WebAuthn registration.
+- `POST /auth/setup/verify`: Verifies registration response, stores credential, sets session cookie. Accepts JSON body.
+- `GET /auth/login`: Login page (redirects to `/auth/setup` if no credentials exist).
+- `POST /auth/login/options`: Returns `PublicKeyCredentialRequestOptions` JSON for WebAuthn authentication.
+- `POST /auth/login/verify`: Verifies authentication response, updates sign count, sets session cookie. Accepts JSON body.
+- `POST /auth/logout`: Clears session cookie, redirects to `/auth/login`.
+
+### Session Cookie
+
+- Name: `gtd_session`
+- `HttpOnly`, `SameSite=Lax`, `Secure` (when origin is HTTPS)
+- Signed with `itsdangerous.TimestampSigner` using `AUTH_SECRET_KEY`
+- Max age configurable via `AUTH_SESSION_MAX_AGE` (default 7 days)
+
 ## Export Routes
 
 - `GET /export/tasks.csv`: Export all tasks as CSV. Optional `status` query parameter to filter.

@@ -70,3 +70,13 @@ class Task(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utc_now, nullable=False)
     updated_at: datetime = Field(default_factory=utc_now, nullable=False)
     completed_at: datetime | None = None
+
+
+class WebAuthnCredential(SQLModel, table=True):
+    __tablename__ = "webauthn_credentials"
+
+    id: int | None = Field(default=None, primary_key=True)
+    credential_id: bytes
+    public_key: bytes
+    sign_count: int = 0
+    created_at: datetime = Field(default_factory=utc_now)

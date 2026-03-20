@@ -8,6 +8,10 @@ services:
       APP_PORT: 8080
       DATABASE_URL: sqlite:////data/todo.db
       TZ: America/Chicago
+      # Generate a secret: python -c "import secrets; print(secrets.token_hex(32))"
+      AUTH_SECRET_KEY: ${AUTH_SECRET_KEY:?Set AUTH_SECRET_KEY in .env or environment}
+      WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-localhost}
+      WEBAUTHN_ORIGIN: ${WEBAUTHN_ORIGIN:-http://localhost:8081}
     ports:
       - "8081:8080"
     volumes:

@@ -22,6 +22,12 @@
         <li><a href="/tasks">All Tasks{% if nc.all_tasks %} <span class="nav-badge {% if nc.overdue %}nav-badge-red{% elif nc.due_today %}nav-badge-blue{% endif %}">{{ nc.all_tasks }}</span>{% endif %}</a></li>
         <li><a href="/projects">Projects{% if nc.overdue_projects %} <span class="nav-badge nav-badge-red">{{ nc.overdue_projects }}</span>{% endif %}</a></li>
       </ul>
+      {% if show_logout() %}
+      <span class="nav-spacer"></span>
+      <form action="/auth/logout" method="post" style="margin:0">
+        <button type="submit" class="nav-logout-btn">Logout</button>
+      </form>
+      {% endif %}
     </nav>
     <main class="shell">
       {% block content %}{% endblock %}
