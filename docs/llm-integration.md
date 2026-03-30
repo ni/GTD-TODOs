@@ -90,8 +90,35 @@ curl -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/t
 
 This is the recommended way for LLM agents to authenticate when fetching task and project data.
 
+## GTD CLI
+
+The `gtd` command-line tool provides an alternative to direct HTTP calls or SQLite queries. Install it with `./scripts/install-cli.sh` and configure with `gtd config init`.
+
+This is the recommended way for agents to interact with the GTD TODOs app:
+
+```bash
+# Check connectivity
+gtd health
+
+# Generate a structured GTD report (agent adds recommendations)
+gtd report
+
+# Export data
+gtd export tasks
+gtd export projects
+
+# Manage tasks
+gtd add "Task title"
+gtd complete 42
+```
+
+The CLI reads the API key from `~/.gtd/config.toml`, so agents don't need the key in memory.
+
+See `.github/skills/gtd-cli/SKILL.md` for the full agent skill reference.
+
 ## Companion Assets
 
 - `.github/copilot-instructions.md`
 - `.github/skills/todo-api/SKILL.md`
 - `.github/skills/todo-data-model/SKILL.md`
+- `.github/skills/gtd-cli/SKILL.md`

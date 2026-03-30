@@ -124,6 +124,35 @@ sudo cp ./backup-todo.db "$(docker volume inspect gtd-todos_todo_app_data --form
 
 See [docs/api.md](docs/api.md) for full export endpoint documentation.
 
+## CLI
+
+The GTD CLI provides command-line access to the running GTD TODOs server.
+
+### Install
+
+```bash
+./scripts/install-cli.sh
+```
+
+### First-Time Setup
+
+```bash
+gtd config init
+```
+
+### Usage
+
+```bash
+gtd today            # show overdue + due-today tasks
+gtd inbox            # show inbox
+gtd add "Buy milk"   # quick-add a task
+gtd complete 42      # complete a task
+gtd report           # daily GTD focus report
+gtd --help           # full command reference
+```
+
+See [cli/README.md](cli/README.md) for full CLI documentation.
+
 ## Developer Commands
 
 Run tests:
@@ -153,6 +182,8 @@ docker build .
 ## Project Structure
 
 - `app/`: FastAPI app, routes, SQLModel models, Markdown helpers, templates, and static assets.
+- `cli/`: GTD CLI package — command-line interface for the server.
+- `scripts/`: Installation scripts (e.g. `install-cli.sh`).
 - `tests/`: test coverage for app import, page rendering, health checks, SQLite initialization, GTD workflow routes, and service-layer logic.
 - `docs/`: human-readable API and agent-integration documentation.
 - `.github/`: Copilot instructions, skills, and CI workflow.
@@ -163,3 +194,5 @@ docker build .
 - [docs/llm-integration.md](docs/llm-integration.md)
 - [.github/skills/todo-api/SKILL.md](.github/skills/todo-api/SKILL.md)
 - [.github/skills/todo-data-model/SKILL.md](.github/skills/todo-data-model/SKILL.md)
+- [.github/skills/gtd-cli/SKILL.md](.github/skills/gtd-cli/SKILL.md)
+- [cli/README.md](cli/README.md)

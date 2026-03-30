@@ -66,6 +66,7 @@ Before starting work, read the relevant skill file from `.github/skills/`:
 - **GTD Daily Report** (`.github/skills/gtd-daily-report/SKILL.md`): When the user asks for a daily report, focus plan, tomorrow's priorities, or a GTD review.
 - **TODO API** (`.github/skills/todo-api/SKILL.md`): When interacting with the running app over HTTP — routes, endpoints, filtering, exports, and error handling.
 - **TODO Data Model** (`.github/skills/todo-data-model/SKILL.md`): When reasoning about task/project semantics — GTD statuses, due dates, recurrence, and notes.
+- **GTD CLI** (`.github/skills/gtd-cli/SKILL.md`): When using the command line to manage tasks, projects, or generate reports instead of the HTTP API directly.
 
 ## Documentation Expectations
 
