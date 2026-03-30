@@ -1,3 +1,7 @@
+---
+name: gtd-daily-report
+description: Generate a daily focus report, tomorrow's priorities, or a GTD review from live task data.
+---
 # GTD Daily Focus Report Skill
 
 Use this skill when the user asks for a daily report, focus plan, tomorrow's priorities, or a GTD review.
