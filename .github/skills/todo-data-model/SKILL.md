@@ -1,3 +1,7 @@
+---
+name: todo-data-model
+description: Reasoning about task and project semantics — GTD statuses, due dates, recurrence, and notes.
+---
 # TODO Data Model Skill
 
 Use this skill when reasoning about task and project semantics in GTD TODOs.

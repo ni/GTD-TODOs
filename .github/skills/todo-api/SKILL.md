@@ -1,3 +1,7 @@
+---
+name: todo-api
+description: Interacting with the running GTD TODOs app over HTTP — routes, endpoints, filtering, exports, and error handling.
+---
 # TODO API Skill
 
 Use this skill when interacting with the running GTD TODOs application over HTTP.
