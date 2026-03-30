@@ -15,6 +15,11 @@ TODAY = date.today()
 YESTERDAY = TODAY - timedelta(days=1)
 TWO_DAYS_AGO = TODAY - timedelta(days=2)
 
+TWO_DAYS_AGO_TS = TWO_DAYS_AGO.isoformat() + "T09:00:00"
+TODAY_TS = TODAY.isoformat() + "T09:00:00"
+YESTERDAY_TS = YESTERDAY.isoformat() + "T17:00:00"
+IN_TWO_DAYS = (TODAY + timedelta(days=2)).isoformat()
+
 PROJECTS = [
     {"id": 1, "name": "Work Project"},
     {"id": 2, "name": "Personal"},
@@ -22,17 +27,47 @@ PROJECTS = [
 
 TASKS = [
     # Hard landscape — due today
-    {"id": 1, "title": "Team standup", "status": "next_action", "due_date": TODAY.isoformat(), "project_id": 1, "is_recurring": False, "created_at": TWO_DAYS_AGO.isoformat() + "T09:00:00", "completed_at": None, "last_completed_at": None},
+    {
+        "id": 1, "title": "Team standup", "status": "next_action",
+        "due_date": TODAY.isoformat(), "project_id": 1,
+        "is_recurring": False, "created_at": TWO_DAYS_AGO_TS,
+        "completed_at": None, "last_completed_at": None,
+    },
     # Overdue
-    {"id": 2, "title": "Overdue report", "status": "next_action", "due_date": YESTERDAY.isoformat(), "project_id": 1, "is_recurring": False, "created_at": TWO_DAYS_AGO.isoformat() + "T09:00:00", "completed_at": None, "last_completed_at": None},
+    {
+        "id": 2, "title": "Overdue report", "status": "next_action",
+        "due_date": YESTERDAY.isoformat(), "project_id": 1,
+        "is_recurring": False, "created_at": TWO_DAYS_AGO_TS,
+        "completed_at": None, "last_completed_at": None,
+    },
     # Next action, due in 2 days (urgent)
-    {"id": 3, "title": "Urgent next", "status": "next_action", "due_date": (TODAY + timedelta(days=2)).isoformat(), "project_id": None, "is_recurring": False, "created_at": TWO_DAYS_AGO.isoformat() + "T09:00:00", "completed_at": None, "last_completed_at": None},
+    {
+        "id": 3, "title": "Urgent next", "status": "next_action",
+        "due_date": IN_TWO_DAYS, "project_id": None,
+        "is_recurring": False, "created_at": TWO_DAYS_AGO_TS,
+        "completed_at": None, "last_completed_at": None,
+    },
     # Waiting for
-    {"id": 4, "title": "Waiting on Bob", "status": "waiting_for", "due_date": None, "project_id": 2, "is_recurring": False, "created_at": TWO_DAYS_AGO.isoformat() + "T09:00:00", "completed_at": None, "last_completed_at": None},
+    {
+        "id": 4, "title": "Waiting on Bob", "status": "waiting_for",
+        "due_date": None, "project_id": 2,
+        "is_recurring": False, "created_at": TWO_DAYS_AGO_TS,
+        "completed_at": None, "last_completed_at": None,
+    },
     # Inbox
-    {"id": 5, "title": "Inbox item", "status": "inbox", "due_date": None, "project_id": None, "is_recurring": False, "created_at": TODAY.isoformat() + "T09:00:00", "completed_at": None, "last_completed_at": None},
+    {
+        "id": 5, "title": "Inbox item", "status": "inbox",
+        "due_date": None, "project_id": None,
+        "is_recurring": False, "created_at": TODAY_TS,
+        "completed_at": None, "last_completed_at": None,
+    },
     # Done yesterday (for completed count)
-    {"id": 6, "title": "Finished yesterday", "status": "done", "due_date": None, "project_id": None, "is_recurring": False, "created_at": TWO_DAYS_AGO.isoformat() + "T09:00:00", "completed_at": YESTERDAY.isoformat() + "T17:00:00", "last_completed_at": None},
+    {
+        "id": 6, "title": "Finished yesterday", "status": "done",
+        "due_date": None, "project_id": None,
+        "is_recurring": False, "created_at": TWO_DAYS_AGO_TS,
+        "completed_at": YESTERDAY_TS, "last_completed_at": None,
+    },
 ]
 
 

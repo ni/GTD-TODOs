@@ -112,7 +112,8 @@ def _build_report(
         for t in do_first:
             proj = project_map.get(t.get("project_id", -1), "")
             due_str = t.get("due_date") or ""
-            lines.append(f"| {t['id']} | {t['title']} | {t.get('status', '')} | {due_str} | {proj} |")
+            status = t.get("status", "")
+            lines.append(f"| {t['id']} | {t['title']} | {status} | {due_str} | {proj} |")
         lines.append("")
 
     # Next Actions
@@ -163,7 +164,7 @@ def _build_report(
         lines.append("")
 
     # Previous day completions
-    lines.append(f"### Previous Day")
+    lines.append("### Previous Day")
     lines.append("")
     lines.append(
         f"**{len(completed_yesterday)}** task(s) completed on {yesterday.isoformat()}."
@@ -184,8 +185,8 @@ def report(ctx: click.Context, target_date: str | None, tomorrow: bool) -> None:
     if target_date:
         try:
             td = date.fromisoformat(target_date)
-        except ValueError:
-            raise click.ClickException(f"Invalid date: {target_date}")
+        except ValueError as exc:
+            raise click.ClickException(f"Invalid date: {target_date}") from exc
     elif tomorrow:
         td = date.today() + timedelta(days=1)
     else:

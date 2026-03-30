@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import os
-import stat
-
 from gtd_cli.config import (
     ensure_config_dir,
     get_api_key,

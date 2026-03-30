@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from click.testing import CliRunner
-
 from gtd_cli.config import load_config
 from gtd_cli.main import cli
 

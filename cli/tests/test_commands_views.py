@@ -16,11 +16,26 @@ YESTERDAY = (date.today() - timedelta(days=1)).isoformat()
 TOMORROW = (date.today() + timedelta(days=1)).isoformat()
 
 TASKS = [
-    {"id": 1, "title": "Overdue task", "status": "next_action", "due_date": YESTERDAY, "project_id": None, "is_recurring": False},
-    {"id": 2, "title": "Due today task", "status": "next_action", "due_date": TODAY, "project_id": None, "is_recurring": False},
-    {"id": 3, "title": "Future task", "status": "next_action", "due_date": TOMORROW, "project_id": None, "is_recurring": False},
-    {"id": 4, "title": "Done task", "status": "done", "due_date": TODAY, "project_id": None, "is_recurring": False},
-    {"id": 5, "title": "No due date", "status": "inbox", "due_date": None, "project_id": None, "is_recurring": False},
+    {
+        "id": 1, "title": "Overdue task", "status": "next_action",
+        "due_date": YESTERDAY, "project_id": None, "is_recurring": False,
+    },
+    {
+        "id": 2, "title": "Due today task", "status": "next_action",
+        "due_date": TODAY, "project_id": None, "is_recurring": False,
+    },
+    {
+        "id": 3, "title": "Future task", "status": "next_action",
+        "due_date": TOMORROW, "project_id": None, "is_recurring": False,
+    },
+    {
+        "id": 4, "title": "Done task", "status": "done",
+        "due_date": TODAY, "project_id": None, "is_recurring": False,
+    },
+    {
+        "id": 5, "title": "No due date", "status": "inbox",
+        "due_date": None, "project_id": None, "is_recurring": False,
+    },
 ]
 
 
@@ -64,7 +79,10 @@ def test_today_shows_count_summary(runner, monkeypatch):
 @respx.mock
 def test_inbox_shows_inbox_tasks(runner, monkeypatch):
     monkeypatch.setenv("GTD_SERVER_URL", BASE)
-    inbox_tasks = [{"id": 5, "title": "No due date", "status": "inbox", "due_date": None, "project_id": None, "is_recurring": False}]
+    inbox_tasks = [{
+        "id": 5, "title": "No due date", "status": "inbox",
+        "due_date": None, "project_id": None, "is_recurring": False,
+    }]
     respx.get(f"{BASE}/export/tasks.json", params={"status": "inbox"}).mock(
         return_value=httpx.Response(200, json=inbox_tasks)
     )
@@ -77,7 +95,10 @@ def test_inbox_shows_inbox_tasks(runner, monkeypatch):
 def test_inbox_shows_count(runner, monkeypatch):
     monkeypatch.setenv("GTD_SERVER_URL", BASE)
     respx.get(f"{BASE}/export/tasks.json", params={"status": "inbox"}).mock(
-        return_value=httpx.Response(200, json=[{"id": 1, "title": "T", "status": "inbox", "due_date": None, "project_id": None, "is_recurring": False}])
+        return_value=httpx.Response(200, json=[{
+            "id": 1, "title": "T", "status": "inbox",
+            "due_date": None, "project_id": None, "is_recurring": False,
+        }])
     )
     result = runner.invoke(cli, ["inbox"])
     assert "1 task(s) in inbox" in result.output

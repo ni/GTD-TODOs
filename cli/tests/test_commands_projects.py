@@ -10,15 +10,35 @@ from gtd_cli.main import cli
 BASE = "http://test:8080"
 
 PROJECTS = [
-    {"id": 1, "name": "Project A", "description": "Desc A", "notes": "Some notes", "due_date": "2026-04-15", "completed_at": None, "archived_at": None},
-    {"id": 2, "name": "Project B", "description": None, "notes": None, "due_date": None, "completed_at": None, "archived_at": None},
+    {
+        "id": 1, "name": "Project A", "description": "Desc A",
+        "notes": "Some notes", "due_date": "2026-04-15",
+        "completed_at": None, "archived_at": None,
+    },
+    {
+        "id": 2, "name": "Project B", "description": None,
+        "notes": None, "due_date": None,
+        "completed_at": None, "archived_at": None,
+    },
 ]
 
 TASKS = [
-    {"id": 1, "title": "Task 1", "status": "inbox", "due_date": None, "project_id": 1, "is_recurring": False},
-    {"id": 2, "title": "Task 2", "status": "next_action", "due_date": "2026-04-01", "project_id": 1, "is_recurring": False},
-    {"id": 3, "title": "Task 3", "status": "done", "due_date": None, "project_id": 1, "is_recurring": False},
-    {"id": 4, "title": "Task 4", "status": "inbox", "due_date": None, "project_id": 2, "is_recurring": False},
+    {
+        "id": 1, "title": "Task 1", "status": "inbox",
+        "due_date": None, "project_id": 1, "is_recurring": False,
+    },
+    {
+        "id": 2, "title": "Task 2", "status": "next_action",
+        "due_date": "2026-04-01", "project_id": 1, "is_recurring": False,
+    },
+    {
+        "id": 3, "title": "Task 3", "status": "done",
+        "due_date": None, "project_id": 1, "is_recurring": False,
+    },
+    {
+        "id": 4, "title": "Task 4", "status": "inbox",
+        "due_date": None, "project_id": 2, "is_recurring": False,
+    },
 ]
 
 

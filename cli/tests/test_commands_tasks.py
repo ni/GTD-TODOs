@@ -8,9 +8,19 @@ import respx
 from gtd_cli.main import cli
 
 SAMPLE_TASKS = [
-    {"id": 1, "title": "Buy milk", "status": "inbox", "due_date": None, "project_id": None, "is_recurring": False, "notes": None},
-    {"id": 2, "title": "Write report", "status": "next_action", "due_date": "2026-03-30", "project_id": 1, "is_recurring": False, "notes": "Important"},
-    {"id": 3, "title": "Call dentist", "status": "waiting_for", "due_date": None, "project_id": None, "is_recurring": True, "notes": None},
+    {
+        "id": 1, "title": "Buy milk", "status": "inbox",
+        "due_date": None, "project_id": None, "is_recurring": False, "notes": None,
+    },
+    {
+        "id": 2, "title": "Write report", "status": "next_action",
+        "due_date": "2026-03-30", "project_id": 1, "is_recurring": False,
+        "notes": "Important",
+    },
+    {
+        "id": 3, "title": "Call dentist", "status": "waiting_for",
+        "due_date": None, "project_id": None, "is_recurring": True, "notes": None,
+    },
 ]
 
 BASE = "http://test:8080"
@@ -156,6 +166,8 @@ def test_edit_task_clear_due_date(runner, monkeypatch):
 @respx.mock
 def test_complete_nonexistent_shows_error(runner, monkeypatch):
     monkeypatch.setenv("GTD_SERVER_URL", BASE)
-    respx.post(f"{BASE}/tasks/999/complete").mock(return_value=httpx.Response(404, text="Not found"))
+    respx.post(f"{BASE}/tasks/999/complete").mock(
+        return_value=httpx.Response(404, text="Not found")
+    )
     result = runner.invoke(cli, ["complete", "999"])
     assert result.exit_code != 0

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+import click
 import httpx
 import pytest
 import respx
-
-import click
 
 from gtd_cli.client import GTDClient
 
