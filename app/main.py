@@ -21,6 +21,7 @@ from app.routes.auth import router as auth_router
 from app.routes.export import router as export_router
 from app.routes.health import router as health_router
 from app.routes.pages import router as pages_router
+from app.routes.settings import router as settings_router
 from app.routes.tasks import router as tasks_router
 
 logger = logging.getLogger("app")
@@ -100,6 +101,7 @@ def create_app() -> FastAPI:
     app.include_router(pages_router)
     app.include_router(tasks_router)
     app.include_router(export_router)
+    app.include_router(settings_router)
 
     # Auth middleware — must be added after routes so it wraps them.
     app.add_middleware(AuthMiddleware)

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Settings – {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="page-settings">
+  <h1>Settings</h1>
+
+  {% if auth_disabled %}
+  <div class="settings-info-banner">
+    Authentication is disabled. API keys are not enforced but can still be managed.
+  </div>
+  {% endif %}
+
+  <h2>API Keys</h2>
+  <p class="settings-description">API keys allow programmatic access to your tasks. Include the key in an <code>Authorization: Bearer &lt;key&gt;</code> header.</p>
+
+  {% if error %}
+  <div class="settings-error">{{ error }}</div>
+  {% endif %}
+
+  {% if new_key %}
+  <div class="settings-new-key">
+    <strong>Your new API key:</strong>
+    <div class="new-key-display">
+      <input type="text" value="{{ new_key }}" readonly class="new-key-input" id="new-key-value">
+      <button type="button" class="btn-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('new-key-value').value)">Copy</button>
+    </div>
+    <p class="new-key-warning">This key will not be shown again. Copy it now and store it securely.</p>
+  </div>
+  {% endif %}
+
+  <form class="settings-create-form" action="/settings/api-keys" method="post">
+    <input type="text" name="name" placeholder="Key name (e.g. CLI on laptop)" required autocomplete="off">
+    <button type="submit" class="btn-primary">Generate Key</button>
+  </form>
+
+  {% if api_keys %}
+  <table class="settings-key-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Key</th>
+        <th>Created</th>
+        <th>Last Used</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key in api_keys %}
+      <tr>
+        <td>{{ key.name }}</td>
+        <td><code>gtd_••••••{{ key.key_suffix }}</code></td>
+        <td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>{{ key.last_used_at.strftime('%Y-%m-%d') if key.last_used_at else 'Never' }}</td>
+        <td>
+          <form action="/settings/api-keys/{{ key.id }}/revoke" method="post" style="display:inline">
+            <button type="submit" class="btn-secondary btn-sm">Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">No API keys yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -55,7 +55,7 @@ docker compose up --build
 - Backend: FastAPI on Python 3.12.
 - UI: server-rendered Jinja templates with small HTMX interactions when needed.
 - Persistence: SQLite, with the canonical persistent path under `/data` in Docker.
-- Authentication: Single-user passkey (WebAuthn) via `py_webauthn` and `itsdangerous` session cookies. Set `AUTH_DISABLED=true` to skip auth in dev/test. Existing tests use `AUTH_DISABLED=true` via `conftest.py`.
+- Authentication: Single-user passkey (WebAuthn) via `py_webauthn` and `itsdangerous` session cookies. API keys (`Authorization: Bearer gtd_...`) provide programmatic access. Set `AUTH_DISABLED=true` to skip auth in dev/test. Existing tests use `AUTH_DISABLED=true` via `conftest.py`.
 - Domain rule: recurring tasks remain single persistent task records whose `due_date` advances on completion.
 - Notes rule: task notes are stored as raw Markdown and rendered as safe HTML.
 
