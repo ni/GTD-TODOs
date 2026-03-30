@@ -78,6 +78,18 @@ The application logs all requests with method, path, status code, and latency to
 
 HTTP errors (404, 500) return branded HTML error pages with navigation links.
 
+## API Key Authentication
+
+API keys enable programmatic access without a browser session. Generate keys from the Settings page (gear icon) after logging in with a passkey.
+
+Use the key in the `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/tasks.json
+```
+
+This is the recommended way for LLM agents to authenticate when fetching task and project data.
+
 ## Companion Assets
 
 - `.github/copilot-instructions.md`

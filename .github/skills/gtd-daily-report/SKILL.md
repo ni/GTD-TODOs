@@ -18,7 +18,14 @@ If the container is not running, tell the user to start it with `docker compose 
 
 ### Step 2: Fetch all open tasks and projects
 
-Query the SQLite database directly inside the container. This avoids HTTP auth (WebAuthn passkeys cannot be used programmatically) and requires no config changes.
+**Preferred method:** Use an API key with the HTTP export endpoints. Generate an API key from the Settings page in the browser, then:
+
+```bash
+curl -s -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/tasks.json
+curl -s -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/projects.json
+```
+
+**Alternative:** Query the SQLite database directly inside the container (no API key needed):
 
 ```bash
 docker exec gtd-todos-app python -c "

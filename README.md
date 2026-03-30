@@ -66,6 +66,18 @@ GTD TODOs supports single-user passkey (WebAuthn) authentication. On first visit
 | `WEBAUTHN_RP_NAME` | Human-readable RP name | `GTD TODOs` |
 | `WEBAUTHN_ORIGIN` | Expected origin for WebAuthn ceremonies | `http://localhost:8080` |
 
+### API Keys (Programmatic Access)
+
+API keys allow CLI tools and scripts to access the API without a browser session. Generate keys from the Settings page (gear icon in the nav bar) after logging in with a passkey.
+
+Use the key in the `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/tasks.json
+```
+
+Keys are shown in full once at creation time and stored as SHA-256 hashes. Up to 10 keys can be active. Revoke keys from the Settings page.
+
 ### Disabling Auth for Local Development
 
 Set `AUTH_DISABLED=true` to skip all authentication:

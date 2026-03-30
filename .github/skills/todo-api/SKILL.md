@@ -155,6 +155,28 @@ All routes except `/health`, `/auth/*`, and `/static/*` require an authenticated
 | `WEBAUTHN_RP_NAME` | `GTD TODOs` | RP display name |
 | `WEBAUTHN_ORIGIN` | `http://localhost:8080` | Expected origin |
 
+### API Key (Programmatic Access)
+
+API keys allow CLI tools and scripts to access the API without a browser session.
+
+Include the key in the `Authorization` header:
+
+```
+Authorization: Bearer gtd_your_key_here
+```
+
+API keys grant access to all protected routes (same scope as session cookies).
+
+### Managing API Keys
+
+- `GET /settings` — Settings page with API key management (requires session cookie)
+- `POST /settings/api-keys` — Generate a new key (requires session, form field: `name`)
+- `POST /settings/api-keys/{key_id}/revoke` — Revoke a key (requires session)
+
+Keys are shown once at creation. Up to 10 active keys. Keys are stored as SHA-256 hashes.
+
+**Important:** API key management requires a session cookie. API keys cannot be used to create or revoke other keys.
+
 ### Bypassing Auth in Tests
 
 Set `AUTH_DISABLED=true` in the environment. The test `conftest.py` does this by default.

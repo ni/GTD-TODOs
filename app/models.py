@@ -80,3 +80,14 @@ class WebAuthnCredential(SQLModel, table=True):
     public_key: bytes
     sign_count: int = 0
     created_at: datetime = Field(default_factory=utc_now)
+
+
+class APIKey(SQLModel, table=True):
+    __tablename__ = "api_keys"
+
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    key_hash: str = Field(unique=True)
+    key_suffix: str
+    created_at: datetime = Field(default_factory=utc_now)
+    last_used_at: datetime | None = None

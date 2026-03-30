@@ -22,9 +22,31 @@
 
 - `GET /health`: Returns JSON health status.
 
+## Authentication Methods
+
+### Session Cookie (Browser)
+
+Authenticate via the passkey login flow. A signed `gtd_session` cookie is set after successful authentication.
+
+### API Key (Programmatic Access)
+
+Include the key in the `Authorization` header:
+
+    Authorization: Bearer gtd_your_key_here
+
+API keys grant access to all protected routes (same scope as session cookies). API keys cannot be used to access the Settings page or manage other keys — those routes require a session cookie.
+
+### Managing API Keys
+
+- `GET /settings` — Settings page with API key management (requires session)
+- `POST /settings/api-keys` — Generate a new key (requires session, form field: `name`)
+- `POST /settings/api-keys/{key_id}/revoke` — Revoke a key (requires session)
+
+Keys are shown in full exactly once at creation time. After that, only a masked suffix is displayed. Up to 10 keys can exist simultaneously.
+
 ## Authentication Routes
 
-All routes except `/health`, `/auth/*`, and `/static/*` require an authenticated session when `AUTH_DISABLED` is not `true`.
+All routes except `/health`, `/auth/*`, and `/static/*` require an authenticated session (cookie or API key) when `AUTH_DISABLED` is not `true`.
 
 - `GET /auth/setup`: First-run setup page (only when no credentials exist). Redirects to `/auth/login` if credentials already exist.
 - `POST /auth/setup/options`: Returns `PublicKeyCredentialCreationOptions` JSON for WebAuthn registration.

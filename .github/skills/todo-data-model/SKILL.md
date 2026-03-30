@@ -42,3 +42,12 @@ Use this skill when reasoning about task and project semantics in GTD TODOs.
 - Notes are stored as raw Markdown text.
 - Render notes as sanitized HTML.
 - Plain text is already valid Markdown input.
+
+## API Key Model
+
+- Table: `api_keys`
+- Fields: `id`, `name` (user label), `key_hash` (SHA-256 hex digest, unique), `key_suffix` (last 6 chars for display), `created_at`, `last_used_at`.
+- Plaintext key format: `gtd_<64-hex-chars>` (32 random bytes).
+- Only the hash is stored — the plaintext is shown once at creation.
+- `last_used_at` is updated on each successful API key authentication.
+- Maximum 10 active keys per instance.

@@ -7,10 +7,12 @@ import logging
 
 from fastapi import Request
 from itsdangerous import BadSignature, SignatureExpired, TimestampSigner
+from sqlmodel import Session as DBSession
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, RedirectResponse, Response
 
 from app.config import get_settings
+from app.db import get_engine
 
 logger = logging.getLogger("app")
 
@@ -60,6 +62,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         if _is_exempt(path):
             return await call_next(request)
+
+        # Check Authorization header for Bearer token
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:]  # strip "Bearer "
+            if token.startswith("gtd_"):
+                from app.services.api_key_service import verify_key
+
+                engine = get_engine()
+                with DBSession(engine) as db_session:
+                    api_key = verify_key(db_session, token)
+                if api_key is not None:
+                    return await call_next(request)
 
         # Check session cookie
         cookie = request.cookies.get(COOKIE_NAME)
