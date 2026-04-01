@@ -8,52 +8,40 @@ Use this skill when the user asks for a daily report, focus plan, tomorrow's pri
 
 ## How to Generate the Report
 
-### Step 1: Verify the app container is running
+> **Important:** Always use the `gtd` CLI to fetch data. Do NOT query the SQLite database directly via `docker exec`, and do NOT use `curl` against the HTTP API. The CLI handles authentication and connectivity automatically via `~/.gtd/config.toml`.
+
+### Step 1: Verify connectivity
 
 ```bash
-docker ps --filter name=gtd-todos-app --format '{{.Status}}'
+gtd health
 ```
 
-If the container is not running, tell the user to start it with `docker compose up -d --build`.
+If the CLI is not installed, run `./scripts/install-cli.sh` from the repo root. If the server is unreachable, tell the user to start it with `docker compose up -d --build`.
 
-### Step 2: Fetch all open tasks and projects
-
-**Preferred method:** Use an API key with the HTTP export endpoints. Generate an API key from the Settings page in the browser, then:
+### Step 2: Fetch the structured report
 
 ```bash
-curl -s -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/tasks.json
-curl -s -H "Authorization: Bearer gtd_your_key_here" http://localhost:8080/export/projects.json
+gtd report               # today's report
+gtd report --tomorrow    # tomorrow's report
+gtd report --date YYYY-MM-DD  # specific date
 ```
 
-**Alternative:** Query the SQLite database directly inside the container (no API key needed):
+`gtd report` returns a pre-classified Markdown summary with Do First, Next Actions, Waiting For, Inbox, and Previous Day sections. Use this as the foundation.
+
+### Step 3: Fetch supplementary data if needed
 
 ```bash
-docker exec gtd-todos-app python -c "
-import sqlite3, json
-conn = sqlite3.connect('/data/todo.db')
-conn.row_factory = sqlite3.Row
-cur = conn.cursor()
-tasks = [dict(r) for r in cur.execute('SELECT * FROM tasks').fetchall()]
-projects = [dict(r) for r in cur.execute('SELECT * FROM projects').fetchall()]
-conn.close()
-print('===TASKS===')
-print(json.dumps(tasks, indent=2, default=str))
-print('===PROJECTS===')
-print(json.dumps(projects, indent=2, default=str))
-"
+gtd tasks --status inbox          # check inbox count
+gtd projects                      # check project health (open task counts)
 ```
 
-This returns all tasks and projects with all fields as JSON. Filter client-side.
-
-> **Note:** Table names are `tasks` and `projects` (plural). The database path inside the container is `/data/todo.db`.
-
-### Step 3: Determine the target date
+### Step 4: Determine the target date
 
 If the user says "tomorrow", use today's date + 1. If they say "today" or give no date, use today. Use the current date from context.
 
-### Step 4: Classify tasks using GTD methodology
+### Step 5: Classify tasks using GTD methodology
 
-From the open tasks (status != `done`), build these categories:
+The `gtd report` output already classifies most of these. Verify and supplement from the open tasks (status != `done`):
 
 1. **Hard Landscape** — tasks with `due_date` equal to the target date. These are non-negotiable commitments.
 2. **Overdue** — tasks with `due_date` before the target date. These need immediate attention.
@@ -63,7 +51,7 @@ From the open tasks (status != `done`), build these categories:
 6. **Someday / Maybe** — tasks with status `someday_maybe`. Mention only briefly.
 7. **Inbox** — tasks with status `inbox`. Remind user to clarify these.
 
-### Step 5: Build the report
+### Step 6: Build the report
 
 Include these sections:
 
@@ -73,9 +61,9 @@ Include these sections:
 - **GTD Recommendations**: 3-5 actionable bullet points advising how to spend the day. Reference specific tasks and projects. Consider time-sensitivity, dependencies, and quick wins.
 - **Previous Day's Wins**: Count of tasks completed on the current date (tasks where `completed_at` matches today). Provides momentum context.
 
-### Step 6: Resolve project names
+### Step 7: Resolve project names
 
-Map `project_id` from tasks to the project `name` from the projects export. Show project names in the report, not IDs.
+The CLI output already includes project names. If any are missing, use `gtd project <id>` to look them up.
 
 ## Report Format
 
