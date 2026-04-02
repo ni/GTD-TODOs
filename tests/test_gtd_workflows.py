@@ -53,6 +53,24 @@ def test_inbox_renders_markdown_notes_safely(client: TestClient, db_session: Ses
     assert "<strong>bold text</strong>" in response.text
 
 
+def test_inbox_renders_markdown_checkboxes(client: TestClient, db_session: Session) -> None:
+    create_task(db_session, title="Checklist", notes="- [ ] todo\n- [x] done")
+
+    response = client.get("/inbox")
+
+    assert 'type="checkbox"' in response.text
+    assert 'checked="checked"' in response.text
+
+
+def test_inbox_renders_markdown_tables(client: TestClient, db_session: Session) -> None:
+    create_task(db_session, title="Table Task", notes="| A | B |\n|---|---|\n| 1 | 2 |")
+
+    response = client.get("/inbox")
+
+    assert "<table>" in response.text
+    assert "<td>1</td>" in response.text
+
+
 def test_inbox_sanitizes_unsafe_html_in_notes(client: TestClient, db_session: Session) -> None:
     create_task(db_session, title="XSS Task", notes="<script>alert('xss')</script>")
 

@@ -2,21 +2,25 @@
 
 import nh3
 from markdown_it import MarkdownIt
+from mdit_py_plugins.tasklists import tasklists_plugin
 
 markdown_parser = MarkdownIt("commonmark", {"html": False, "linkify": True}).enable(
-    "strikethrough"
+    ["strikethrough", "table"]
 )
+tasklists_plugin(markdown_parser)
 
 SAFE_TAGS = {
     "a", "abbr", "acronym", "b", "blockquote", "code", "em", "i", "li", "ol",
     "strong", "ul", "p", "pre", "hr", "h1", "h2", "h3", "h4", "h5", "h6", "s",
-    "span",
+    "span", "input", "table", "thead", "tbody", "tr", "th", "td",
 }
 SAFE_ATTRIBUTES = {
     "a": {"href", "title"},
     "abbr": {"title"},
     "acronym": {"title"},
     "code": {"class"},
+    "input": {"type", "checked", "disabled"},
+    "li": {"class"},
 }
 
 
