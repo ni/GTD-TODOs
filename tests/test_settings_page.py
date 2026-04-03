@@ -81,7 +81,7 @@ def test_gear_icon_in_nav(client: TestClient) -> None:
     resp = client.get("/inbox")
     assert resp.status_code == 200
     assert "/settings" in resp.text
-    assert "nav-settings-link" in resp.text
+    assert "nav-icon-btn" in resp.text
 
 
 # --- Test that settings requires auth when enabled ---

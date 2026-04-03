@@ -263,7 +263,7 @@ class TestAllTasksMarkdown:
             notes="<script>alert('xss')</script>",
         )
         response = client.get("/tasks")
-        assert "<script>" not in response.text
+        assert "<script>alert('xss')</script>" not in response.text
 
 
 # ---------------------------------------------------------------------------

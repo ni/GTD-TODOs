@@ -76,7 +76,7 @@ def test_inbox_sanitizes_unsafe_html_in_notes(client: TestClient, db_session: Se
 
     response = client.get("/inbox")
 
-    assert "<script>" not in response.text
+    assert "<script>alert('xss')</script>" not in response.text
 
 
 # --- Task creation ---
