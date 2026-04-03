@@ -79,12 +79,32 @@ def today(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 
 @router.get("/projects", response_class=HTMLResponse)
 def projects_list(
-    request: Request, session: Session = Depends(get_session)
+    request: Request,
+    show: str = "open",
+    has_due_date: str = "",
+    session: Session = Depends(get_session),
 ) -> HTMLResponse:
-    projects = list_projects(session, include_completed=True)
+    include_completed = show == "all"
+    due_filter: bool | None = None
+    if has_due_date == "yes":
+        due_filter = True
+    elif has_due_date == "no":
+        due_filter = False
+    projects = list_projects(
+        session, include_completed=include_completed, has_due_date=due_filter,
+    )
+    if include_completed:
+        # Open projects first, then completed; alphabetical within each group
+        projects = sorted(projects, key=lambda p: (p.completed_at is not None, p.name))
     counts = {p.id: get_project_task_counts(session, p.id) for p in projects}  # type: ignore[arg-type]
     ctx = _base_context(session)
-    ctx.update({"projects": projects, "counts": counts, "today": date.today()})
+    ctx.update({
+        "projects": projects,
+        "counts": counts,
+        "today": date.today(),
+        "f_show": show,
+        "f_has_due_date": has_due_date,
+    })
     return templates.TemplateResponse(request, "projects_list.html", ctx)
 
 
@@ -275,6 +295,10 @@ def all_tasks(
         has_due_date=due_filter,
         is_recurring=recurring_filter,
     )
+
+    # When showing all statuses, push done tasks to the bottom
+    if not status and not exclude_done:
+        tasks = sorted(tasks, key=lambda t: t.status == TaskStatus.DONE)
 
     ctx = _base_context(session)
     ctx.update({

@@ -432,6 +432,6 @@ class TestProjectDetailPage:
     ) -> None:
         project = create_project(db_session, name="Done Proj")
         complete_project(db_session, project.id)  # type: ignore[arg-type]
-        response = client.get("/projects")
+        response = client.get("/projects?show=all")
         assert "Completed" in response.text
         assert "project-completed" in response.text
