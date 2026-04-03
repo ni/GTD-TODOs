@@ -10,6 +10,7 @@
     <span class="badge badge-completed">Completed</span>
     {% else %}
     <form class="inline-form" action="/projects/{{ project.id }}/complete" method="post">
+      {{ csrf_hidden_input(request) }}
       <button type="submit" class="btn-complete-project{% if not can_complete %} btn-disabled{% endif %}" {% if not can_complete %}disabled title="Complete all tasks first"{% else %}title="Complete project"{% endif %}>
         &#x2713; Complete Project
       </button>
@@ -35,6 +36,7 @@
   {% endif %}
 
   <form class="quick-add" action="/tasks" method="post">
+    {{ csrf_hidden_input(request) }}
     <input type="hidden" name="project_id" value="{{ project.id }}">
     <input type="text" name="title" placeholder="Add a task to this project…" required autocomplete="off">
     <button type="submit">Add</button>
@@ -49,6 +51,7 @@
         <div class="task-header">
           {% if task.status.value != 'done' %}
           <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+            {{ csrf_hidden_input(request) }}
             <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
           </form>
           {% endif %}

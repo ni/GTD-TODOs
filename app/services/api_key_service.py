@@ -1,7 +1,6 @@
 """API key generation, verification, listing, and revocation."""
 
 import hashlib
-import hmac
 import secrets
 from datetime import UTC, datetime
 
@@ -51,15 +50,14 @@ def verify_key(session: Session, plaintext_key: str) -> APIKey | None:
     Updates last_used_at on success.
     """
     candidate_hash = _hash_key(plaintext_key)
-    keys = session.exec(select(APIKey)).all()
-    for key in keys:
-        if hmac.compare_digest(key.key_hash, candidate_hash):
-            key.last_used_at = datetime.now(UTC)
-            session.add(key)
-            session.commit()
-            session.refresh(key)
-            return key
-    return None
+    key = session.exec(select(APIKey).where(APIKey.key_hash == candidate_hash)).first()
+    if key is None:
+        return None
+    key.last_used_at = datetime.now(UTC)
+    session.add(key)
+    session.commit()
+    session.refresh(key)
+    return key
 
 
 def list_keys(session: Session) -> list[APIKey]:

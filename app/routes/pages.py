@@ -1,16 +1,22 @@
 """Page routes."""
 
 from datetime import date
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import Session
 
-from app.config import get_settings
 from app.db import get_session
 from app.models import TaskStatus
 from app.routes import templates
+from app.routes.helpers import (
+    base_context,
+    parse_bool_filter,
+    parse_status_filter,
+    redirect_back,
+    safe_back_url,
+)
 from app.services.project_service import (
     can_complete_project,
     complete_project,
@@ -21,7 +27,6 @@ from app.services.project_service import (
     update_project,
 )
 from app.services.task_service import (
-    get_nav_counts,
     list_tasks,
     list_tasks_due_today,
     list_tasks_overdue,
@@ -31,13 +36,6 @@ from app.services.task_service import (
 router = APIRouter(tags=["pages"])
 
 STATUS_LABELS: dict[str, str] = {s.value: s.label for s in TaskStatus}
-
-
-def _base_context(session: Session) -> dict[str, object]:
-    return {
-        "app_name": get_settings().app_name,
-        "nav_counts": get_nav_counts(session),
-    }
 
 
 @router.get("/")
@@ -50,7 +48,7 @@ def inbox(request: Request, session: Session = Depends(get_session)) -> HTMLResp
     tasks = list_tasks(session, status=TaskStatus.INBOX)
     projects_all = list_projects(session, include_completed=True)
     projects_map = {p.id: p.name for p in projects_all}
-    ctx = _base_context(session)
+    ctx = base_context(session)
     ctx.update({
         "tasks": tasks,
         "projects": projects_map,
@@ -66,7 +64,7 @@ def today(request: Request, session: Session = Depends(get_session)) -> HTMLResp
     due_today = list_tasks_due_today(session)
     projects_all = list_projects(session, include_completed=True)
     projects_map = {p.id: p.name for p in projects_all}
-    ctx = _base_context(session)
+    ctx = base_context(session)
     ctx.update({
         "overdue": overdue,
         "due_today": due_today,
@@ -85,11 +83,7 @@ def projects_list(
     session: Session = Depends(get_session),
 ) -> HTMLResponse:
     include_completed = show == "all"
-    due_filter: bool | None = None
-    if has_due_date == "yes":
-        due_filter = True
-    elif has_due_date == "no":
-        due_filter = False
+    due_filter = parse_bool_filter(has_due_date)
     projects = list_projects(
         session, include_completed=include_completed, has_due_date=due_filter,
     )
@@ -97,7 +91,7 @@ def projects_list(
         # Open projects first, then completed; alphabetical within each group
         projects = sorted(projects, key=lambda p: (p.completed_at is not None, p.name))
     counts = {p.id: get_project_task_counts(session, p.id) for p in projects}  # type: ignore[arg-type]
-    ctx = _base_context(session)
+    ctx = base_context(session)
     ctx.update({
         "projects": projects,
         "counts": counts,
@@ -129,7 +123,7 @@ def complete_project_route(
     completed = complete_project(session, project_id)
     if completed is None:
         raise HTTPException(status_code=409, detail="Project has open tasks")
-    return RedirectResponse(f"/projects/{project_id}", status_code=303)
+    return RedirectResponse(f"/projects/{project_id}", status_code=303)  # noqa: E501
 
 
 @router.get("/projects/{project_id}", response_class=HTMLResponse)
@@ -155,7 +149,7 @@ def project_detail(
     grouped = {k: v for k, v in grouped.items() if v}
 
     completable = can_complete_project(session, project_id)
-    ctx = _base_context(session)
+    ctx = base_context(session)
     ctx.update({
         "project": project,
         "grouped_tasks": grouped,
@@ -165,19 +159,6 @@ def project_detail(
     })
     return templates.TemplateResponse(request, "project_detail.html", ctx)
 
-
-# Paths that are safe redirect targets from the referer header.
-_SAFE_REFERER_PREFIXES = ("/inbox", "/today", "/projects", "/tasks")
-
-
-def _redirect_back(request: Request, fallback: str = "/projects") -> str:
-    """Extract a safe redirect path from the Referer header."""
-    referer = request.headers.get("referer", "")
-    if referer:
-        path = urlparse(referer).path
-        if any(path.startswith(prefix) for prefix in _SAFE_REFERER_PREFIXES):
-            return path
-    return fallback
 
 
 @router.get("/projects/{project_id}/edit", response_class=HTMLResponse)
@@ -190,8 +171,8 @@ def edit_project_page(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    back_url = request.query_params.get("back_url") or _redirect_back(request)
-    ctx = _base_context(session)
+    back_url = request.query_params.get("back_url") or redirect_back(request, "/projects")
+    ctx = base_context(session)
     ctx.update({"project": project, "back_url": back_url})
     return templates.TemplateResponse(request, "project_edit.html", ctx)
 
@@ -225,16 +206,11 @@ def update_project_route(
     )
 
     if action == "close":
-        safe_back = back_url
-        if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
-            safe_back = f"/projects/{project_id}"
-        return RedirectResponse(safe_back, status_code=303)
+        return RedirectResponse(safe_back_url(back_url, f"/projects/{project_id}"), status_code=303)
     # Preserve back_url through the Save redirect so it survives round-trips
-    safe_back = back_url
-    if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
-        safe_back = f"/projects/{project_id}"
+    safe = safe_back_url(back_url, f"/projects/{project_id}")
     return RedirectResponse(
-        f"/projects/{project_id}/edit?back_url={quote(safe_back)}", status_code=303
+        f"/projects/{project_id}/edit?back_url={quote(safe)}", status_code=303
     )
 
 
@@ -252,16 +228,8 @@ def all_tasks(
     projects_map = {p.id: p.name for p in projects_list_all}
 
     # Parse filters
-    status_filter = None
-    exclude_done = False
-    if status == "all_in_work":
-        exclude_done = True
-    else:
-        try:
-            if status:
-                status_filter = TaskStatus(status)
-        except ValueError:
-            pass
+    exclude_done = status == "all_in_work"
+    status_filter = None if exclude_done else parse_status_filter(status)
 
     pid: int | None = None
     no_project = False
@@ -273,18 +241,6 @@ def all_tasks(
         except ValueError:
             pass
 
-    due_filter: bool | None = None
-    if has_due_date == "yes":
-        due_filter = True
-    elif has_due_date == "no":
-        due_filter = False
-
-    recurring_filter: bool | None = None
-    if is_recurring == "yes":
-        recurring_filter = True
-    elif is_recurring == "no":
-        recurring_filter = False
-
     tasks = search_tasks(
         session,
         status=status_filter,
@@ -292,15 +248,15 @@ def all_tasks(
         project_id=pid,
         no_project=no_project,
         q=q.strip() if q else None,
-        has_due_date=due_filter,
-        is_recurring=recurring_filter,
+        has_due_date=parse_bool_filter(has_due_date),
+        is_recurring=parse_bool_filter(is_recurring),
     )
 
     # When showing all statuses, push done tasks to the bottom
     if not status and not exclude_done:
         tasks = sorted(tasks, key=lambda t: t.status == TaskStatus.DONE)
 
-    ctx = _base_context(session)
+    ctx = base_context(session)
     ctx.update({
         "tasks": tasks,
         "projects": projects_map,

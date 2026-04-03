@@ -1,7 +1,7 @@
 """Task mutation and edit routes."""
 
 from datetime import date
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.models import RecurrenceType, Task, TaskStatus
 from app.routes import templates
+from app.routes.helpers import redirect_back, safe_back_url
 from app.services.project_service import list_projects
 from app.services.task_service import complete_task, create_task, reopen_task, update_task
 
@@ -25,19 +26,6 @@ RECURRENCE_OPTIONS = [
 
 router = APIRouter(tags=["tasks"])
 
-# Paths that are safe redirect targets from the referer header.
-_SAFE_REFERER_PREFIXES = ("/inbox", "/today", "/projects", "/tasks")
-
-
-def _redirect_back(request: Request, fallback: str = "/inbox") -> str:
-    """Extract a safe redirect path from the Referer header."""
-    referer = request.headers.get("referer", "")
-    if referer:
-        path = urlparse(referer).path
-        if any(path.startswith(prefix) for prefix in _SAFE_REFERER_PREFIXES):
-            return path
-    return fallback
-
 
 @router.post("/tasks")
 def create_task_route(
@@ -47,12 +35,12 @@ def create_task_route(
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
     if not title.strip():
-        return RedirectResponse(_redirect_back(request), status_code=303)
+        return RedirectResponse(redirect_back(request), status_code=303)
     kwargs: dict = {"title": title.strip()}
     if project_id:
         kwargs["project_id"] = int(project_id)
     create_task(session, **kwargs)
-    return RedirectResponse(_redirect_back(request), status_code=303)
+    return RedirectResponse(redirect_back(request), status_code=303)
 
 
 @router.get("/tasks/{task_id}/edit", response_class=HTMLResponse)
@@ -70,7 +58,7 @@ def edit_task_page(
     # Build a map of project_id -> due_date for client-side validation
     project_due_dates = {p.id: str(p.due_date) if p.due_date else "" for p in projects}
     # Prefer explicit query param (preserved across Save round-trips) over Referer
-    back_url = request.query_params.get("back_url") or _redirect_back(request)
+    back_url = request.query_params.get("back_url") or redirect_back(request)
     return templates.TemplateResponse(
         request,
         "task_edit.html",
@@ -125,16 +113,11 @@ def update_task_route(
     )
 
     if action == "close":
-        safe_back = back_url
-        if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
-            safe_back = "/inbox"
-        return RedirectResponse(safe_back, status_code=303)
+        return RedirectResponse(safe_back_url(back_url, "/inbox"), status_code=303)
     # Preserve back_url through the Save redirect so it survives round-trips
-    safe_back = back_url
-    if not any(safe_back.startswith(p) for p in _SAFE_REFERER_PREFIXES):
-        safe_back = "/inbox"
+    safe = safe_back_url(back_url, "/inbox")
     return RedirectResponse(
-        f"/tasks/{task_id}/edit?back_url={quote(safe_back)}", status_code=303
+        f"/tasks/{task_id}/edit?back_url={quote(safe)}", status_code=303
     )
 
 
@@ -166,7 +149,7 @@ def quick_update_task_route(
     if kwargs:
         update_task(session, task_id, **kwargs)
 
-    return RedirectResponse(_redirect_back(request), status_code=303)
+    return RedirectResponse(redirect_back(request), status_code=303)
 
 
 @router.post("/tasks/{task_id}/complete")
@@ -178,7 +161,7 @@ def complete_task_route(
     task = complete_task(session, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return RedirectResponse(_redirect_back(request), status_code=303)
+    return RedirectResponse(redirect_back(request), status_code=303)
 
 
 @router.post("/tasks/{task_id}/reopen")
@@ -190,4 +173,4 @@ def reopen_task_route(
     task = reopen_task(session, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return RedirectResponse(_redirect_back(request), status_code=303)
+    return RedirectResponse(redirect_back(request), status_code=303)

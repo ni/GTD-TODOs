@@ -36,6 +36,7 @@
   </details>
 
   <form class="quick-add" action="/projects" method="post">
+    {{ csrf_hidden_input(request) }}
     <input type="text" name="name" placeholder="New project name…" required autocomplete="off">
     <button type="submit">Create</button>
   </form>

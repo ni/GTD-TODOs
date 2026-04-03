@@ -72,6 +72,7 @@
       <div class="task-header">
         {% if task.status.value != 'done' %}
         <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          {{ csrf_hidden_input(request) }}
           <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
         </form>
         {% endif %}

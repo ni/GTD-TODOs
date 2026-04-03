@@ -13,6 +13,7 @@
     <li class="task-item task-overdue">
       <div class="task-header">
         <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          {{ csrf_hidden_input(request) }}
           <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
         </form>
         <span class="task-title">{{ task.title }}</span>
@@ -39,6 +40,7 @@
     <li class="task-item">
       <div class="task-header">
         <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          {{ csrf_hidden_input(request) }}
           <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
         </form>
         <span class="task-title">{{ task.title }}</span>

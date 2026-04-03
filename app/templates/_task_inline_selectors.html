@@ -6,6 +6,7 @@
 {% set show_project = show_project if show_project is defined else true %}
 
 <form class="inline-form inline-selector" action="/tasks/{{ task.id }}/quick-update" method="post">
+  {{ csrf_hidden_input(request) }}
   <input type="hidden" name="field" value="status">
   <select name="status" class="inline-select inline-status badge-status-{{ task.status.value }}" onchange="this.form.submit()">
     {% for value, label in status_labels.items() %}
@@ -15,12 +16,14 @@
 </form>
 
 <form class="inline-form inline-selector" action="/tasks/{{ task.id }}/quick-update" method="post">
+  {{ csrf_hidden_input(request) }}
   <input type="hidden" name="field" value="due_date">
   <input type="date" name="due_date" class="inline-date" value="{{ task.due_date or '' }}" onchange="this.form.submit()">
 </form>
 
 {% if show_project and projects_list is defined %}
 <form class="inline-form inline-selector" action="/tasks/{{ task.id }}/quick-update" method="post">
+  {{ csrf_hidden_input(request) }}
   <input type="hidden" name="field" value="project_id">
   <select name="project_id" class="inline-select inline-project" onchange="this.form.submit()">
     <option value="">No project</option>
