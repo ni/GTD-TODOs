@@ -64,7 +64,7 @@ async def setup_verify(request: Request, session: Session = Depends(get_session)
         cookie,
         max_age=settings.auth_session_max_age,
         httponly=True,
-        samesite="lax",
+        samesite="strict",
         secure=settings.webauthn_origin.startswith("https"),
     )
     return resp
@@ -105,7 +105,7 @@ async def login_verify(request: Request, session: Session = Depends(get_session)
         cookie,
         max_age=settings.auth_session_max_age,
         httponly=True,
-        samesite="lax",
+        samesite="strict",
         secure=settings.webauthn_origin.startswith("https"),
     )
     return resp

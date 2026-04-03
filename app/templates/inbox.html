@@ -7,6 +7,7 @@
   <h1>Inbox</h1>
 
   <form class="quick-add" action="/tasks" method="post">
+    {{ csrf_hidden_input(request) }}
     <input type="text" name="title" placeholder="Capture a task…" required autocomplete="off">
     <button type="submit">Add</button>
   </form>
@@ -17,6 +18,7 @@
     <li class="task-item">
       <div class="task-header">
         <form class="inline-form" action="/tasks/{{ task.id }}/complete" method="post">
+          {{ csrf_hidden_input(request) }}
           <button type="submit" class="btn-complete" title="Complete task">&#x2713;</button>
         </form>
         <span class="task-title">{{ task.title }}</span>

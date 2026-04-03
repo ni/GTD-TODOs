@@ -7,6 +7,7 @@
   <h1>Edit Task</h1>
 
   <form action="/tasks/{{ task.id }}/update" method="post" class="edit-form">
+    {{ csrf_hidden_input(request) }}
     <input type="hidden" name="back_url" value="{{ back_url }}">
     <div class="form-group">
       <label for="title">Title</label>

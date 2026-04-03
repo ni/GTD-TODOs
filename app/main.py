@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.auth import AuthMiddleware
 from app.config import get_settings
+from app.csrf import CSRFMiddleware
 from app.db import init_db
 from app.logging_config import configure_logging
 from app.routes import templates
@@ -53,6 +54,24 @@ def create_app() -> FastAPI:
             request.url.path,
             response.status_code,
             elapsed_ms,
+        )
+        return response
+
+    # --- Security response headers ---
+    @app.middleware("http")
+    async def add_security_headers(request: Request, call_next):  # type: ignore[no-untyped-def,unused-ignore]
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=()")
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; "
+            "base-uri 'self'; form-action 'self'",
         )
         return response
 
@@ -105,6 +124,8 @@ def create_app() -> FastAPI:
 
     # Auth middleware — must be added after routes so it wraps them.
     app.add_middleware(AuthMiddleware)
+    # CSRF middleware — runs after auth (added after = runs before in ASGI).
+    app.add_middleware(CSRFMiddleware)
 
     return app
 

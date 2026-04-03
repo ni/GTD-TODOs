@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
 
 from app.db import get_session
-from app.models import TaskStatus
+from app.routes.helpers import parse_status_filter
 from app.services.export_service import export_projects, export_tasks
 
 logger = logging.getLogger("app")
@@ -30,12 +30,7 @@ def export_tasks_csv(
     session: Session = Depends(get_session),
 ) -> StreamingResponse:
     """Export tasks as CSV."""
-    status_filter = None
-    if status:
-        try:
-            status_filter = TaskStatus(status)
-        except ValueError:
-            pass
+    status_filter = parse_status_filter(status)
 
     rows = export_tasks(session, status=status_filter)
     output = io.StringIO()
@@ -60,12 +55,7 @@ def export_tasks_json(
     session: Session = Depends(get_session),
 ) -> JSONResponse:
     """Export tasks as JSON."""
-    status_filter = None
-    if status:
-        try:
-            status_filter = TaskStatus(status)
-        except ValueError:
-            pass
+    status_filter = parse_status_filter(status)
 
     rows = export_tasks(session, status=status_filter)
     logger.info("Exported %d tasks as JSON", len(rows))
