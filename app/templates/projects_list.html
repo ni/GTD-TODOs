@@ -6,6 +6,35 @@
 <section class="page-projects">
   <h1>Projects</h1>
 
+  <details class="filter-disclosure" {% if f_show != 'open' or f_has_due_date %}open{% endif %}>
+    <summary title="Filters"><svg class="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Filter</summary>
+    <form class="filter-bar" action="/projects" method="get">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="f-show">Show</label>
+          <select id="f-show" name="show">
+            <option value="open" {% if f_show != "all" %}selected{% endif %}>Open</option>
+            <option value="all" {% if f_show == "all" %}selected{% endif %}>All</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="f-due">Due Date</label>
+          <select id="f-due" name="has_due_date">
+            <option value="">Any</option>
+            <option value="yes" {% if f_has_due_date == "yes" %}selected{% endif %}>Has due date</option>
+            <option value="no" {% if f_has_due_date == "no" %}selected{% endif %}>No due date</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button type="submit" class="btn-primary btn-sm">Apply</button>
+        <a href="/projects" class="btn-secondary btn-sm">Clear</a>
+      </div>
+    </form>
+  </details>
+
   <form class="quick-add" action="/projects" method="post">
     <input type="text" name="name" placeholder="New project name…" required autocomplete="off">
     <button type="submit">Create</button>

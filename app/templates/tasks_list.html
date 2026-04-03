@@ -6,59 +6,62 @@
 <section class="page-all-tasks">
   <h1>All Tasks</h1>
 
-  <form class="filter-bar" action="/tasks" method="get">
-    <div class="filter-row">
-      <div class="filter-group">
-        <label for="f-q">Search</label>
-        <input type="text" id="f-q" name="q" value="{{ f_q }}" placeholder="Title or notes…" autocomplete="off">
+  <details class="filter-disclosure" {% if f_q or f_status != 'all_in_work' or f_project_id or f_has_due_date or f_is_recurring %}open{% endif %}>
+    <summary title="Filters"><svg class="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Filter</summary>
+    <form class="filter-bar" action="/tasks" method="get">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="f-q">Search</label>
+          <input type="text" id="f-q" name="q" value="{{ f_q }}" placeholder="Title or notes…" autocomplete="off">
+        </div>
+
+        <div class="filter-group">
+          <label for="f-status">Status</label>
+          <select id="f-status" name="status">
+            <option value="">All</option>
+            <option value="all_in_work" {% if f_status == "all_in_work" %}selected{% endif %}>All In Work</option>
+            {% for value, label in status_labels.items() %}
+            <option value="{{ value }}" {% if f_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="f-project">Project</label>
+          <select id="f-project" name="project_id">
+            <option value="">All</option>
+            <option value="none" {% if f_project_id == "none" %}selected{% endif %}>No project</option>
+            {% for project in projects_list %}
+            <option value="{{ project.id }}" {% if f_project_id == project.id|string %}selected{% endif %}>{{ project.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="f-due">Due Date</label>
+          <select id="f-due" name="has_due_date">
+            <option value="">Any</option>
+            <option value="yes" {% if f_has_due_date == "yes" %}selected{% endif %}>Has due date</option>
+            <option value="no" {% if f_has_due_date == "no" %}selected{% endif %}>No due date</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="f-recurring">Recurring</label>
+          <select id="f-recurring" name="is_recurring">
+            <option value="">Any</option>
+            <option value="yes" {% if f_is_recurring == "yes" %}selected{% endif %}>Recurring</option>
+            <option value="no" {% if f_is_recurring == "no" %}selected{% endif %}>Non-recurring</option>
+          </select>
+        </div>
       </div>
 
-      <div class="filter-group">
-        <label for="f-status">Status</label>
-        <select id="f-status" name="status">
-          <option value="">All</option>
-          <option value="all_in_work" {% if f_status == "all_in_work" %}selected{% endif %}>All In Work</option>
-          {% for value, label in status_labels.items() %}
-          <option value="{{ value }}" {% if f_status == value %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
+      <div class="filter-actions">
+        <button type="submit" class="btn-primary btn-sm">Apply</button>
+        <a href="/tasks" class="btn-secondary btn-sm">Clear</a>
       </div>
-
-      <div class="filter-group">
-        <label for="f-project">Project</label>
-        <select id="f-project" name="project_id">
-          <option value="">All</option>
-          <option value="none" {% if f_project_id == "none" %}selected{% endif %}>No project</option>
-          {% for project in projects_list %}
-          <option value="{{ project.id }}" {% if f_project_id == project.id|string %}selected{% endif %}>{{ project.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="f-due">Due Date</label>
-        <select id="f-due" name="has_due_date">
-          <option value="">Any</option>
-          <option value="yes" {% if f_has_due_date == "yes" %}selected{% endif %}>Has due date</option>
-          <option value="no" {% if f_has_due_date == "no" %}selected{% endif %}>No due date</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="f-recurring">Recurring</label>
-        <select id="f-recurring" name="is_recurring">
-          <option value="">Any</option>
-          <option value="yes" {% if f_is_recurring == "yes" %}selected{% endif %}>Recurring</option>
-          <option value="no" {% if f_is_recurring == "no" %}selected{% endif %}>Non-recurring</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="filter-actions">
-      <button type="submit" class="btn-primary btn-sm">Apply</button>
-      <a href="/tasks" class="btn-secondary btn-sm">Clear</a>
-    </div>
-  </form>
+    </form>
+  </details>
 
   {% if tasks %}
   <ul class="task-list">

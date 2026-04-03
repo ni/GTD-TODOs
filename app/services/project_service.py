@@ -41,12 +41,17 @@ def list_projects(
     *,
     include_archived: bool = False,
     include_completed: bool = False,
+    has_due_date: bool | None = None,
 ) -> list[Project]:
     stmt = select(Project)
     if not include_archived:
         stmt = stmt.where(Project.archived_at.is_(None))  # type: ignore[union-attr]
     if not include_completed:
         stmt = stmt.where(Project.completed_at.is_(None))  # type: ignore[union-attr]
+    if has_due_date is True:
+        stmt = stmt.where(Project.due_date.is_not(None))  # type: ignore[union-attr]
+    elif has_due_date is False:
+        stmt = stmt.where(Project.due_date.is_(None))  # type: ignore[union-attr]
     stmt = stmt.order_by(Project.name)
     return session.exec(stmt).all()  # type: ignore[return-value]
 
